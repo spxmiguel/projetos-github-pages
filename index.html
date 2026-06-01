@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Portfólio estático de projetos GitHub com releases e links dinâmicos.">
+    <title>Portfólio GitHub</title>
+    <link rel="preconnect" href="https://api.github.com">
+    <link rel="stylesheet" href="css/styles.css">
+  </head>
+  <body>
+    <header class="site-header">
+      <nav class="nav-shell" aria-label="Navegação principal">
+        <a class="brand" href="#top" aria-label="Voltar ao início">
+          <span class="brand-mark" aria-hidden="true">GH</span>
+          <span>
+            <strong id="brandName">Portfólio GitHub</strong>
+            <small id="brandHandle">@spxmiguel</small>
+          </span>
+        </a>
+        <a class="nav-link" id="profileLink" href="https://github.com/spxmiguel" target="_blank" rel="noreferrer">Ver GitHub</a>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Projetos publicados</p>
+          <h1 id="heroTitle">Portfólio de projetos GitHub</h1>
+          <p id="heroDescription">
+            Uma vitrine estática que sincroniza automaticamente com repositórios,
+            GitHub Pages, README e releases oficiais.
+          </p>
+        </div>
+        <div class="hero-stats" aria-label="Resumo dos projetos">
+          <div>
+            <strong id="repoCount">0</strong>
+            <span>Projetos</span>
+          </div>
+          <div>
+            <strong id="releaseCount">0</strong>
+            <span>Releases</span>
+          </div>
+          <div>
+            <strong id="languageCount">0</strong>
+            <span>Linguagens</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="controls" aria-label="Filtros de projetos">
+        <label class="search-field" for="searchInput">
+          <span>Buscar</span>
+          <input id="searchInput" type="search" placeholder="Nome do projeto" autocomplete="off">
+        </label>
+        <label class="select-field" for="languageFilter">
+          <span>Linguagem</span>
+          <select id="languageFilter">
+            <option value="all">Todas</option>
+          </select>
+        </label>
+      </section>
+
+      <section class="status" id="statusMessage" role="status" aria-live="polite">
+        Carregando projetos do GitHub...
+      </section>
+
+      <section class="project-grid" id="projectGrid" aria-label="Lista de projetos"></section>
+    </main>
+
+    <template id="projectCardTemplate">
+      <article class="project-card">
+        <div class="card-head">
+          <div>
+            <h2></h2>
+            <p class="project-description"></p>
+          </div>
+          <span class="language-badge"></span>
+        </div>
+        <div class="project-meta"></div>
+        <div class="actions"></div>
+      </article>
+    </template>
+
+    <script src="js/config.js"></script>
+    <script src="js/github.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>
