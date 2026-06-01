@@ -34,6 +34,23 @@ window.PORTFOLIO_CONFIG = {
 
 Depois salve, faça commit e envie para o GitHub.
 
+## Configuração automática para quem fez fork
+
+Depois de fazer fork e clonar o seu fork, você pode usar um dos assistentes:
+
+- Windows: execute `setup/setup-windows.bat`
+- macOS: execute `setup/setup-mac.command`
+
+O assistente pede seu username do GitHub, confere se `gh` está instalado e autenticado, atualiza `js/config.js`, faz commit, envia para o GitHub e tenta ativar o GitHub Pages na branch `main`.
+
+Se `gh` não estiver instalado ou autenticado, o próprio assistente mostra o tutorial curto:
+
+```bash
+gh auth login
+```
+
+Escolha `GitHub.com`, `HTTPS` e autentique pelo navegador.
+
 ## Como hospedar no GitHub Pages
 
 1. Publique este projeto em um repositório no GitHub.
