@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Setup visual - Projetos GitHub</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <main class="shell">
+      <section class="panel">
+        <div class="intro">
+          <p class="eyebrow">Setup visual</p>
+          <h1>Configure seu site em poucos cliques</h1>
+          <p>Preencha os dados, escolha uma foto por link ou arquivo local e deixe o assistente salvar, commitar, enviar para o GitHub e ativar Pages.</p>
+        </div>
+
+        <div class="status-grid" id="statusGrid">
+          <div class="status-card">
+            <span>Git</span>
+            <strong id="gitStatus">Verificando...</strong>
+          </div>
+          <div class="status-card">
+            <span>GitHub CLI</span>
+            <strong id="ghStatus">Verificando...</strong>
+          </div>
+          <div class="status-card">
+            <span>Autenticação</span>
+            <strong id="authStatus">Verificando...</strong>
+          </div>
+        </div>
+
+        <form id="setupForm" class="form">
+          <label>
+            <span>Nome de usuário GitHub</span>
+            <input id="githubUsername" name="githubUsername" autocomplete="username" required placeholder="seu-usuario">
+          </label>
+
+          <label>
+            <span>Nome do repositório</span>
+            <input id="repoName" name="repoName" placeholder="projetos-github-pages">
+          </label>
+
+          <label>
+            <span>Nome do site</span>
+            <input id="siteTitle" name="siteTitle" placeholder="Projetos GitHub de seu-usuario">
+          </label>
+
+          <label>
+            <span>Descrição</span>
+            <textarea id="siteDescription" name="siteDescription" rows="3" placeholder="Minha vitrine de projetos."></textarea>
+          </label>
+
+          <div class="photo-row">
+            <label>
+              <span>Link de imagem</span>
+              <input id="profileImageUrl" name="profileImageUrl" type="url" placeholder="https://github.com/seu-usuario.png">
+            </label>
+
+            <label class="file-field">
+              <span>Anexar imagem</span>
+              <input id="profileImageFile" name="profileImageFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif">
+            </label>
+          </div>
+
+          <label>
+            <span>Botão “Quer ter o seu também?”</span>
+            <select id="ctaMode" name="ctaMode">
+              <option value="top">Mostrar no topo</option>
+              <option value="fineprint">Esconder nas letrinhas miúdas do fim</option>
+              <option value="hidden">Ocultar completamente</option>
+            </select>
+          </label>
+
+          <p class="hint">Se você anexar uma imagem, ela será copiada para <code>assets/profile/</code>. Se a pasta ainda não tiver remoto Git, o setup cria um repositório novo no seu GitHub.</p>
+
+          <button id="submitButton" type="submit">Salvar e pushar projeto</button>
+        </form>
+      </section>
+
+      <section class="output-panel" aria-live="polite">
+        <div class="output-head">
+          <h2>Resultado</h2>
+          <a id="siteLink" href="#" target="_blank" rel="noreferrer" hidden>Abrir site</a>
+        </div>
+        <pre id="output">Aguardando configuração...</pre>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>

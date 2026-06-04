@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Vitrine estática de projetos GitHub com releases e links dinâmicos.">
+    <title>Projetos GitHub</title>
+    <link rel="preconnect" href="https://api.github.com">
+    <link rel="stylesheet" href="css/styles.css?v=20260602-5">
+  </head>
+  <body>
+    <header class="site-header">
+      <nav class="nav-shell" aria-label="Navegação principal">
+        <a class="brand" href="#top" aria-label="Voltar ao início">
+          <span class="brand-mark" aria-hidden="true">GH</span>
+          <span>
+            <strong id="brandName">Projetos GitHub</strong>
+            <small id="brandHandle">@spxmiguel</small>
+          </span>
+        </a>
+        <div class="nav-actions">
+          <a class="fork-cta" id="forkCta" href="https://github.com/spxmiguel/projetos-github-pages/releases/latest/download/projetos-github-pages-universal.zip" target="_blank" rel="noreferrer">
+            Quer ter o seu também? Clique aqui
+          </a>
+          <button class="theme-toggle" id="themeToggle" type="button" aria-label="Alternar tema" title="Alternar tema">
+            <span id="themeIcon" aria-hidden="true">◐</span>
+          </button>
+          <a class="nav-link" id="profileLink" href="https://github.com/spxmiguel" target="_blank" rel="noreferrer">Ver GitHub</a>
+        </div>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Projetos publicados</p>
+          <h1 id="heroTitle">Projetos GitHub</h1>
+          <p id="heroDescription">
+            Uma vitrine estática que sincroniza automaticamente com repositórios,
+            GitHub Pages, README e releases oficiais.
+          </p>
+        </div>
+        <div class="hero-side">
+          <div class="profile-panel" id="profilePanel" hidden>
+            <img id="profileImage" src="" alt="">
+            <div>
+              <strong id="profileName">spxmiguel</strong>
+              <span>Projetos no GitHub</span>
+            </div>
+          </div>
+          <div class="hero-stats" aria-label="Resumo dos projetos">
+            <div>
+              <strong id="repoCount">0</strong>
+              <span>Projetos</span>
+            </div>
+            <div>
+              <strong id="releaseCount">0</strong>
+              <span>Releases</span>
+            </div>
+            <div>
+              <strong id="languageCount">0</strong>
+              <span>Linguagens</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="controls" aria-label="Filtros de projetos">
+        <label class="search-field" for="searchInput">
+          <span>Buscar</span>
+          <input id="searchInput" type="search" placeholder="Nome do projeto" autocomplete="off">
+        </label>
+        <label class="select-field" for="languageFilter">
+          <span>Linguagem</span>
+          <select id="languageFilter">
+            <option value="all">Todas</option>
+          </select>
+        </label>
+      </section>
+
+      <section class="status" id="statusMessage" role="status" aria-live="polite">
+        Carregando projetos do GitHub...
+      </section>
+
+        <section class="project-grid" id="projectGrid" aria-label="Lista de projetos"></section>
+
+        <p class="fineprint-cta" id="fineprintCta" hidden>
+          quer ter o seu também? <a href="https://github.com/spxmiguel/projetos-github-pages/releases/latest/download/projetos-github-pages-universal.zip">clique aqui</a>
+        </p>
+    </main>
+
+    <template id="projectCardTemplate">
+      <article class="project-card">
+        <div class="card-head">
+          <div>
+            <h2></h2>
+            <p class="project-description"></p>
+          </div>
+          <span class="language-badge"></span>
+        </div>
+        <div class="project-meta"></div>
+        <div class="actions"></div>
+      </article>
+    </template>
+
+    <section class="setup-modal" id="setupModal" aria-labelledby="setupModalTitle" aria-modal="true" role="dialog" hidden>
+      <div class="setup-backdrop" data-close-setup></div>
+      <div class="setup-dialog">
+        <button class="setup-close" type="button" aria-label="Fechar" data-close-setup>×</button>
+        <p class="eyebrow">Baixando setup</p>
+        <h2 id="setupModalTitle">Seu pacote está baixando</h2>
+        <p id="setupDetectedText">Detectei seu sistema e escolhi o pacote certo.</p>
+
+        <div class="os-picker" aria-label="Escolher sistema operacional">
+          <span>Detecção de OS errado? Escolha o certo:</span>
+          <div>
+            <button type="button" data-os="windows">Windows</button>
+            <button type="button" data-os="mac">macOS</button>
+            <button type="button" data-os="linux">Linux</button>
+          </div>
+        </div>
+
+        <ol class="setup-steps" id="setupSteps"></ol>
+
+        <div class="setup-actions">
+          <a class="button primary" id="setupDownloadAgain" href="#" rel="noreferrer">Baixar novamente</a>
+          <a class="button" href="https://github.com/spxmiguel/projetos-github-pages/releases/latest" target="_blank" rel="noreferrer">Ver release</a>
+        </div>
+      </div>
+    </section>
+
+    <script src="js/config.js?v=20260602-5"></script>
+    <script src="js/github.js?v=20260602-5"></script>
+    <script src="js/app.js?v=20260602-5"></script>
+  </body>
+</html>
