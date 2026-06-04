@@ -112,7 +112,6 @@ perl -0pi -e 's/repoName:\s*"[^"]*"/repoName: "$ENV{REPO_NAME}"/' js/config.js
 perl -0pi -e 's/siteTitle:\s*"[^"]+"/siteTitle: "Projetos GitHub de $ENV{GITHUB_USERNAME}"/' js/config.js
 perl -0pi -e 's/profileImageUrl:\s*"[^"]*"/profileImageUrl: "$ENV{PROFILE_IMAGE_URL}"/' js/config.js
 perl -0pi -e 's/encryptedToken:\s*"[^"]*"/encryptedToken: ""/' js/config.js
-perl -0pi -e 's/encryptedGroqKey:\s*"[^"]*"/encryptedGroqKey: ""/' js/config.js
 
 if [ $? -ne 0 ]; then
   echo "Nao foi possivel atualizar js/config.js."

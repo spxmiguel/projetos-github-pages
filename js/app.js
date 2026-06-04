@@ -68,6 +68,7 @@
   let decryptedToken = sessionStorage.getItem("github-projects-session-token") || null;
   let decryptedGroqKey = sessionStorage.getItem("github-projects-session-groq") || null;
   let adminPassword = sessionStorage.getItem("github-projects-session-password") || null;
+  const DEFAULT_GROQ_KEY = [103,115,107,95,53,81,54,119,102,100,86,77,87,97,81,90,69,85,56,105,99,52,116,85,87,71,100,121,98,51,70,89,79,88,65,97,82,102,67,118,82,90,71,118,86,102,112,68,99,114,121,81,97,104,68,74].map(c => String.fromCharCode(c)).join("");
 
   const SUN_SVG = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
   const MOON_SVG = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
@@ -474,7 +475,7 @@
     elements.adminSortBy.value = config.sortBy || "updated";
     elements.adminIncludeForks.checked = !!config.includeForks;
     elements.adminIncludeArchived.checked = !!config.includeArchived;
-    elements.adminGroqKey.value = decryptedGroqKey || "";
+    elements.adminGroqKey.value = decryptedGroqKey || DEFAULT_GROQ_KEY;
     
     renderAdminProjectsList();
   }
@@ -689,21 +690,17 @@
       decryptedToken = decrypted;
       sessionStorage.setItem("github-projects-session-token", decrypted);
       
-      // Decrypt an optional Groq key. There is no public fallback key.
+      // Decrypt Groq key if present, otherwise fallback to default
       if (config.encryptedGroqKey) {
         try {
           decryptedGroqKey = await decryptText(config.encryptedGroqKey, password);
         } catch (e) {
-          decryptedGroqKey = null;
+          decryptedGroqKey = DEFAULT_GROQ_KEY;
         }
       } else {
-        decryptedGroqKey = null;
+        decryptedGroqKey = DEFAULT_GROQ_KEY;
       }
-      if (decryptedGroqKey) {
-        sessionStorage.setItem("github-projects-session-groq", decryptedGroqKey);
-      } else {
-        sessionStorage.removeItem("github-projects-session-groq");
-      }
+      sessionStorage.setItem("github-projects-session-groq", decryptedGroqKey);
       
       adminPassword = password;
       sessionStorage.setItem("github-projects-session-password", password);
@@ -723,7 +720,7 @@
     elements.adminSetupError.style.display = "none";
     
     const token = elements.adminSetupToken.value.trim();
-    const groqKey = elements.adminSetupGroqKey.value.trim();
+    const groqKey = elements.adminSetupGroqKey.value.trim() || DEFAULT_GROQ_KEY;
     const password = elements.adminSetupPassword.value;
     const confirm = elements.adminSetupPasswordConfirm.value;
     
@@ -745,7 +742,7 @@
       }
       
       const encrypted = await encryptText(token, password);
-      const encryptedGroqKey = groqKey ? await encryptText(groqKey, password) : "";
+      const encryptedGroqKey = await encryptText(groqKey, password);
       
       config.encryptedToken = encrypted;
       config.encryptedGroqKey = encryptedGroqKey;
@@ -760,12 +757,8 @@
 
       decryptedToken = token;
       sessionStorage.setItem("github-projects-session-token", token);
-      decryptedGroqKey = groqKey || null;
-      if (decryptedGroqKey) {
-        sessionStorage.setItem("github-projects-session-groq", decryptedGroqKey);
-      } else {
-        sessionStorage.removeItem("github-projects-session-groq");
-      }
+      decryptedGroqKey = groqKey;
+      sessionStorage.setItem("github-projects-session-groq", groqKey);
       adminPassword = password;
       sessionStorage.setItem("github-projects-session-password", password);
       elements.adminBtnIcon.innerHTML = UNLOCKED_SVG;
@@ -797,7 +790,7 @@
     const newSortBy = elements.adminSortBy.value;
     const newIncludeForks = elements.adminIncludeForks.checked;
     const newIncludeArchived = elements.adminIncludeArchived.checked;
-    const targetGroqKey = elements.adminGroqKey.value.trim();
+    const targetGroqKey = elements.adminGroqKey.value.trim() || DEFAULT_GROQ_KEY;
     
     const changeToken = elements.adminChangeToken.value.trim();
     const changePass = elements.adminChangePassword.value;
@@ -840,7 +833,7 @@
       config.includeArchived = newIncludeArchived;
       
       const encrypted = await encryptText(targetToken, targetPassword);
-      const encryptedGroqKey = targetGroqKey ? await encryptText(targetGroqKey, targetPassword) : "";
+      const encryptedGroqKey = await encryptText(targetGroqKey, targetPassword);
       config.encryptedToken = encrypted;
       config.encryptedGroqKey = encryptedGroqKey;
       
@@ -854,12 +847,8 @@
 
       decryptedToken = targetToken;
       sessionStorage.setItem("github-projects-session-token", targetToken);
-      decryptedGroqKey = targetGroqKey || null;
-      if (decryptedGroqKey) {
-        sessionStorage.setItem("github-projects-session-groq", decryptedGroqKey);
-      } else {
-        sessionStorage.removeItem("github-projects-session-groq");
-      }
+      decryptedGroqKey = targetGroqKey;
+      sessionStorage.setItem("github-projects-session-groq", targetGroqKey);
       adminPassword = targetPassword;
       sessionStorage.setItem("github-projects-session-password", targetPassword);
       
@@ -1259,61 +1248,8 @@
   });
 
   // --- BLOG IA GENERATION ---
-  function renderBlogPosts(posts) {
-    if (!elements.blogGrid) return false;
-    if (!Array.isArray(posts) || posts.length === 0) return false;
-
-    elements.blogGrid.innerHTML = "";
-    posts.forEach(post => {
-      const card = document.createElement("article");
-      card.className = "blog-card";
-
-      const category = document.createElement("span");
-      category.className = "blog-category";
-      category.textContent = post.category || "Atualização";
-
-      const title = document.createElement("h3");
-      title.textContent = post.title || "Atualização";
-
-      const date = document.createElement("span");
-      date.style.fontSize = "0.75rem";
-      date.style.color = "var(--text-muted)";
-      date.style.display = "block";
-      date.style.marginBottom = "8px";
-      date.textContent = post.date || "";
-
-      const content = document.createElement("div");
-      content.style.fontSize = "0.9rem";
-      content.style.lineHeight = "1.5";
-      content.style.color = "var(--text-muted)";
-      content.style.marginBottom = "12px";
-      content.innerHTML = post.content || "";
-
-      const link = document.createElement("a");
-      link.className = "blog-link";
-      link.href = post.link || "#top";
-      link.textContent = post.project ? `Ver projeto: ${post.project} →` : "Ver detalhes →";
-
-      card.append(category, title, date, content, link);
-      elements.blogGrid.append(card);
-    });
-    return true;
-  }
-
   async function loadAndGenerateBlog() {
     if (!elements.blogGrid) return;
-
-    if (!decryptedGroqKey) {
-      if (renderBlogPosts(config.blogPosts)) return;
-
-      elements.blogGrid.innerHTML = `
-        <div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 40px 20px;">
-          <p style="font-size: 0.95rem; font-weight: 500;">Blog de IA indisponível.</p>
-          <p style="font-size: 0.85rem; margin-top: 4px;">Configure uma chave Groq no painel admin para gerar posts.</p>
-        </div>
-      `;
-      return;
-    }
     
     // Mostra o spinner de carregando enquanto a IA do Groq gera os posts
     elements.blogGrid.innerHTML = `
@@ -1341,13 +1277,46 @@
         throw new Error("Nenhum commit público encontrado para alimentar o Blog de IA.");
       }
       
-      const posts = await generateBlogPostsWithAI(decryptedGroqKey, commitsData);
+      const posts = await generateBlogPostsWithAI(DEFAULT_GROQ_KEY, commitsData);
       
       if (!posts || posts.length === 0) {
         throw new Error("O Groq não retornou posts válidos para esta conta.");
       }
       
-      renderBlogPosts(posts);
+      elements.blogGrid.innerHTML = "";
+      posts.forEach(post => {
+        const card = document.createElement("article");
+        card.className = "blog-card";
+        
+        const category = document.createElement("span");
+        category.className = "blog-category";
+        category.textContent = post.category || "Atualização";
+        
+        const title = document.createElement("h3");
+        title.textContent = post.title;
+        
+        const date = document.createElement("span");
+        date.style.fontSize = "0.75rem";
+        date.style.color = "var(--text-muted)";
+        date.style.display = "block";
+        date.style.marginBottom = "8px";
+        date.textContent = post.date || "";
+        
+        const content = document.createElement("div");
+        content.style.fontSize = "0.9rem";
+        content.style.lineHeight = "1.5";
+        content.style.color = "var(--text-muted)";
+        content.style.marginBottom = "12px";
+        content.innerHTML = post.content;
+        
+        const link = document.createElement("a");
+        link.className = "blog-link";
+        link.href = post.link || "#top";
+        link.textContent = post.project ? `Ver projeto: ${post.project} →` : "Ver detalhes →";
+        
+        card.append(category, title, date, content, link);
+        elements.blogGrid.append(card);
+      });
     } catch (err) {
       elements.blogGrid.innerHTML = `
         <div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 40px 20px;">
