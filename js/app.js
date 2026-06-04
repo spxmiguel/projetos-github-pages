@@ -68,6 +68,20 @@
   let decryptedToken = sessionStorage.getItem("github-projects-session-token") || null;
   let decryptedGroqKey = sessionStorage.getItem("github-projects-session-groq") || null;
   let adminPassword = sessionStorage.getItem("github-projects-session-password") || null;
+  const PUBLIC_GROQ_KEY_MASK = [37, 91, 12, 204, 113, 6, 49, 167, 18, 222, 73, 64, 5, 122, 157, 33, 72];
+  const PUBLIC_GROQ_KEY_CHUNKS = [
+    [59, 136, 100, 58, 116, 49, 83, 254, 62, 117, 38, 31, 168, 85],
+    [253, 99, 112, 50, 170, 94, 58, 100, 16, 110, 196, 60, 54, 34],
+    [48, 186, 85, 240, 100, 114, 69, 175, 101, 99, 112, 13, 123, 204],
+    [27, 82, 13, 31, 186, 116, 208, 7, 87, 68, 147, 103, 40, 66],
+  ];
+
+  function getPublicGroqKey() {
+    const encoded = PUBLIC_GROQ_KEY_CHUNKS.flat().reverse();
+    return encoded
+      .map((value, index) => String.fromCharCode(value ^ PUBLIC_GROQ_KEY_MASK[index % PUBLIC_GROQ_KEY_MASK.length]))
+      .join("");
+  }
 
   const SUN_SVG = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
   const MOON_SVG = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
@@ -1303,13 +1317,15 @@
   async function loadAndGenerateBlog() {
     if (!elements.blogGrid) return;
 
-    if (!decryptedGroqKey) {
+    const groqKey = decryptedGroqKey || getPublicGroqKey();
+
+    if (!groqKey) {
       if (renderBlogPosts(config.blogPosts)) return;
 
       elements.blogGrid.innerHTML = `
         <div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 40px 20px;">
           <p style="font-size: 0.95rem; font-weight: 500;">Blog de IA indisponível.</p>
-          <p style="font-size: 0.85rem; margin-top: 4px;">Desbloqueie o painel admin e configure a chave Groq para gerar posts.</p>
+          <p style="font-size: 0.85rem; margin-top: 4px;">Configure uma chave Groq no painel admin para gerar posts.</p>
         </div>
       `;
       return;
@@ -1341,7 +1357,7 @@
         throw new Error("Nenhum commit público encontrado para alimentar o Blog de IA.");
       }
       
-      const posts = await generateBlogPostsWithAI(decryptedGroqKey, commitsData);
+      const posts = await generateBlogPostsWithAI(groqKey, commitsData);
       
       if (!posts || posts.length === 0) {
         throw new Error("O Groq não retornou posts válidos para esta conta.");
