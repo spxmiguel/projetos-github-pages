@@ -880,20 +880,34 @@
   }
 
   function formatCacheTime(dateValue) {
-    return new Intl.DateTimeFormat("pt-BR", {
-      day: "2-digit",
-      month: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(new Date(dateValue));
+    if (!dateValue) return "N/A";
+    try {
+      const date = new Date(dateValue);
+      if (isNaN(date.getTime())) return "N/A";
+      return new Intl.DateTimeFormat("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      }).format(date);
+    } catch (e) {
+      return "N/A";
+    }
   }
 
   function formatDate(dateValue) {
-    return new Intl.DateTimeFormat("pt-BR", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    }).format(new Date(dateValue));
+    if (!dateValue) return "Sem data";
+    try {
+      const date = new Date(dateValue);
+      if (isNaN(date.getTime())) return "Sem data";
+      return new Intl.DateTimeFormat("pt-BR", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      }).format(date);
+    } catch (e) {
+      return "Sem data";
+    }
   }
 
 
@@ -1109,6 +1123,7 @@
         }
       }
     } catch (error) {
+      console.error("Erro ao carregar projetos:", error);
       const isRateLimit = error.status === 403;
       showRateLimitError(isRateLimit);
     }
