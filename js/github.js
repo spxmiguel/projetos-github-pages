@@ -2,7 +2,7 @@
   const API_BASE = "https://api.github.com";
   const PAGE_SIZE = 100;
   const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
-  const CACHE_VERSION = 3;
+  const CACHE_VERSION = 5;
 
   function getCacheKey(config) {
     const username = (config.githubUsername || "").toLowerCase();
@@ -133,36 +133,6 @@
     return null;
   }
 
-  function decodeBase64(content) {
-    const normalized = content.replace(/\n/g, "");
-    const binary = atob(normalized);
-    const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
-    return new TextDecoder().decode(bytes);
-  }
-
-  function findReadmeSiteLink(readmeText, repo) {
-    const links = [...readmeText.matchAll(/(?:\[[^\]]+\]\((https?:\/\/[^)\s]+)\))|(https?:\/\/[^\s)<>"']+)/gi)]
-      .map((match) => match[1] || match[2])
-      .map((url) => url.replace(/[.,;:!?]+$/, ""))
-      .filter(Boolean);
-
-    return (
-      links.find((url) => url.includes(`${repo.owner.login}.github.io`)) ||
-      links.find((url) => !url.includes("github.com") && !url.match(/\.(png|jpe?g|gif|svg|webp)$/i)) ||
-      null
-    );
-  }
-
-  async function fetchReadmeSiteLink(repo, token = null) {
-    try {
-      const readme = await requestJson(`${API_BASE}/repos/${repo.full_name}/readme`, token);
-      const readmeText = decodeBase64(readme.content || "");
-      return findReadmeSiteLink(readmeText, repo);
-    } catch (error) {
-      return null;
-    }
-  }
-
   async function fetchRepoReleases(repo, token = null) {
     const releases = await requestJson(`${API_BASE}/repos/${repo.full_name}/releases`, token);
     const officialReleases = releases.filter((release) => !release.draft);
@@ -236,7 +206,6 @@
     const enrichedRepos = await Promise.all(
       visibleRepos.map(async (repo) => {
         const directSiteLink = findSiteLink(repo);
-        const readmeSiteLink = directSiteLink ? null : await fetchReadmeSiteLink(repo, token);
 
         try {
           const releaseData = await fetchRepoReleases(repo, token);
@@ -244,7 +213,7 @@
 
           return {
             ...repo,
-            siteLink: directSiteLink || readmeSiteLink,
+            siteLink: directSiteLink,
             readmeLink: findReadmeLink(repo),
             repoLink: repo.html_url,
             releases: releaseData.releases,
@@ -259,7 +228,7 @@
           } catch (e) {}
           return {
             ...repo,
-            siteLink: directSiteLink || readmeSiteLink,
+            siteLink: directSiteLink,
             readmeLink: findReadmeLink(repo),
             releases: [],
             downloads: [],
