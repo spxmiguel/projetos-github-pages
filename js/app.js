@@ -324,6 +324,8 @@
   includeArchived: ${config.includeArchived},
   sortBy: ${JSON.stringify(config.sortBy)},
   encryptedToken: ${JSON.stringify(config.encryptedToken)},
+  pinnedRepos: ${JSON.stringify(config.pinnedRepos || [])},
+  hiddenRepos: ${JSON.stringify(config.hiddenRepos || [])},
 };
 `;
   }
@@ -439,6 +441,101 @@
     elements.adminSortBy.value = config.sortBy || "updated";
     elements.adminIncludeForks.checked = !!config.includeForks;
     elements.adminIncludeArchived.checked = !!config.includeArchived;
+    
+    renderAdminProjectsList();
+  }
+
+  function renderAdminProjectsList() {
+    const listContainer = document.querySelector("#adminProjectsList");
+    if (!listContainer) return;
+    
+    listContainer.innerHTML = "";
+    
+    const sortedProjects = [...state.projects].sort((a, b) => a.name.localeCompare(b.name));
+    
+    if (sortedProjects.length === 0) {
+      listContainer.innerHTML = '<span style="color: var(--text-muted); font-size: 0.85rem; padding: 8px;">Nenhum projeto carregado.</span>';
+      return;
+    }
+    
+    if (!config.pinnedRepos) config.pinnedRepos = [];
+    if (!config.hiddenRepos) config.hiddenRepos = [];
+    
+    for (const project of sortedProjects) {
+      const row = document.createElement("div");
+      row.className = "admin-project-row";
+      row.style.display = "flex";
+      row.style.alignItems = "center";
+      row.style.justifyContent = "space-between";
+      row.style.padding = "6px 8px";
+      row.style.borderRadius = "var(--radius-sm)";
+      row.style.borderBottom = "1px solid rgba(255,255,255,0.03)";
+      
+      const nameSpan = document.createElement("span");
+      nameSpan.textContent = project.name;
+      nameSpan.style.fontSize = "0.85rem";
+      nameSpan.style.fontWeight = "600";
+      nameSpan.style.textOverflow = "ellipsis";
+      nameSpan.style.overflow = "hidden";
+      nameSpan.style.whiteSpace = "nowrap";
+      nameSpan.style.maxWidth = "55%";
+      
+      const actionsDiv = document.createElement("div");
+      actionsDiv.style.display = "flex";
+      actionsDiv.style.gap = "8px";
+      
+      // Pin Button
+      const pinBtn = document.createElement("button");
+      pinBtn.type = "button";
+      const isPinned = config.pinnedRepos.includes(project.name);
+      pinBtn.innerHTML = isPinned ? "⭐ Fixado" : "☆ Fixar";
+      pinBtn.style.padding = "4px 8px";
+      pinBtn.style.fontSize = "0.75rem";
+      pinBtn.style.borderRadius = "var(--radius-sm)";
+      pinBtn.style.border = isPinned ? "1px solid var(--primary)" : "1px solid var(--border)";
+      pinBtn.style.background = isPinned ? "var(--primary-glow)" : "transparent";
+      pinBtn.style.color = isPinned ? "var(--primary)" : "var(--text-muted)";
+      pinBtn.style.cursor = "pointer";
+      pinBtn.style.transition = "var(--transition)";
+      
+      pinBtn.addEventListener("click", () => {
+        const pinIdx = config.pinnedRepos.indexOf(project.name);
+        if (pinIdx > -1) {
+          config.pinnedRepos.splice(pinIdx, 1);
+        } else {
+          config.pinnedRepos.push(project.name);
+        }
+        renderAdminProjectsList();
+      });
+      
+      // Hide Button
+      const hideBtn = document.createElement("button");
+      hideBtn.type = "button";
+      const isHidden = config.hiddenRepos.includes(project.name);
+      hideBtn.innerHTML = isHidden ? "🙈 Oculto" : "👁️ Mostrar";
+      hideBtn.style.padding = "4px 8px";
+      hideBtn.style.fontSize = "0.75rem";
+      hideBtn.style.borderRadius = "var(--radius-sm)";
+      hideBtn.style.border = isHidden ? "1px solid #ff5f56" : "1px solid var(--border)";
+      hideBtn.style.background = isHidden ? "rgba(255, 95, 86, 0.15)" : "transparent";
+      hideBtn.style.color = isHidden ? "#ff5f56" : "var(--text-muted)";
+      hideBtn.style.cursor = "pointer";
+      hideBtn.style.transition = "var(--transition)";
+      
+      hideBtn.addEventListener("click", () => {
+        const hideIdx = config.hiddenRepos.indexOf(project.name);
+        if (hideIdx > -1) {
+          config.hiddenRepos.splice(hideIdx, 1);
+        } else {
+          config.hiddenRepos.push(project.name);
+        }
+        renderAdminProjectsList();
+      });
+      
+      actionsDiv.append(pinBtn, hideBtn);
+      row.append(nameSpan, actionsDiv);
+      listContainer.append(row);
+    }
   }
 
   function clearCacheAndReload() {
@@ -674,12 +771,25 @@
 
   function getFilteredProjects() {
     const search = state.search.trim().toLowerCase();
+    const hidden = config.hiddenRepos || [];
+    const pinned = config.pinnedRepos || [];
 
-    return state.projects.filter((project) => {
+    const filtered = state.projects.filter((project) => {
+      if (hidden.includes(project.name)) return false;
       const matchesSearch = !search || project.name.toLowerCase().includes(search);
       const matchesLanguage = state.language === "all" || project.language === state.language;
       return matchesSearch && matchesLanguage;
     });
+
+    filtered.sort((a, b) => {
+      const aPinned = pinned.includes(a.name);
+      const bPinned = pinned.includes(b.name);
+      if (aPinned && !bPinned) return -1;
+      if (!aPinned && bPinned) return 1;
+      return 0;
+    });
+
+    return filtered;
   }
 
   function createButton({ href, label, variant = "" }) {
@@ -699,6 +809,16 @@
     const language = card.querySelector(".language-badge");
     const meta = card.querySelector(".project-meta");
     const actions = card.querySelector(".actions");
+
+    // Highlight pinned project
+    const pinned = config.pinnedRepos || [];
+    if (pinned.includes(project.name)) {
+      card.classList.add("pinned-card");
+      const pinBadge = document.createElement("span");
+      pinBadge.className = "pin-badge";
+      pinBadge.innerHTML = "📌 Fixado";
+      card.querySelector(".card-head").prepend(pinBadge);
+    }
 
     title.textContent = project.name;
     description.textContent = project.description || "Projeto sem descrição no GitHub.";
