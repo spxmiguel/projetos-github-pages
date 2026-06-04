@@ -72,6 +72,7 @@
     brandName: document.querySelector("#brandName"),
     brandHandle: document.querySelector("#brandHandle"),
     forkCta: document.querySelector("#forkCta"),
+    headerCreateYours: document.querySelector("#headerCreateYours"),
     fineprintCta: document.querySelector("#fineprintCta"),
     setupModal: document.querySelector("#setupModal"),
     setupDetectedText: document.querySelector("#setupDetectedText"),
@@ -157,6 +158,9 @@
     elements.forkCta.href =
       config.forkUrl ||
       `${RELEASE_DOWNLOAD_BASE}${SETUP_DOWNLOADS.linux.file}`;
+    if (elements.headerCreateYours) {
+      elements.headerCreateYours.href = elements.forkCta.href;
+    }
     elements.fineprintCta.querySelector("a").href = elements.forkCta.href;
     applyCtaMode(config.ctaMode || "top");
     elements.profileLink.href = `https://github.com/${config.githubUsername}`;
@@ -949,12 +953,17 @@
   elements.themeToggle.addEventListener("click", toggleTheme);
   window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", applyTheme);
 
-  elements.forkCta.addEventListener("click", (event) => {
+  const triggerCta = (event) => {
     event.preventDefault();
     const os = detectOs();
     showSetupInstructions(os, { downloaded: true });
     triggerDownload(os);
-  });
+  };
+
+  elements.forkCta.addEventListener("click", triggerCta);
+  if (elements.headerCreateYours) {
+    elements.headerCreateYours.addEventListener("click", triggerCta);
+  }
 
   elements.fineprintCta.querySelector("a").addEventListener("click", (event) => {
     event.preventDefault();
@@ -998,6 +1007,14 @@
         closeAdminModal();
       }
     }
+  });
+
+  // Nav menu active link highlighter
+  document.querySelectorAll(".nav-menu-link").forEach((link) => {
+    link.addEventListener("click", () => {
+      document.querySelectorAll(".nav-menu-link").forEach((l) => l.classList.remove("active"));
+      link.classList.add("active");
+    });
   });
 
   applyTheme();
