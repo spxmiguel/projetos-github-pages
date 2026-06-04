@@ -50,7 +50,7 @@
   const elements = {
     brandName: document.querySelector("#brandName"),
     brandHandle: document.querySelector("#brandHandle"),
-    forkCta: document.querySelector("#createYoursCta"),
+    forkCta: document.querySelector("#forkCta"),
     fineprintCta: document.querySelector("#fineprintCta"),
     setupModal: document.querySelector("#setupModal"),
     setupDetectedText: document.querySelector("#setupDetectedText"),
@@ -109,10 +109,11 @@
     elements.heroDescription.textContent = config.siteDescription;
     elements.profileName.textContent = config.githubUsername;
 
-    const avatarUrl = config.profileImageUrl || `https://github.com/${config.githubUsername}.png`;
-    elements.profileImage.src = avatarUrl;
-    elements.profileImage.alt = `Foto de ${config.githubUsername}`;
-    elements.profilePanel.hidden = false;
+    if (config.profileImageUrl) {
+      elements.profileImage.src = config.profileImageUrl;
+      elements.profileImage.alt = `Foto de ${config.githubUsername}`;
+      elements.profilePanel.hidden = false;
+    }
   }
 
   function setStatus(message) {
@@ -165,13 +166,11 @@
     elements.setupDownloadAgain.href = getDownloadUrl(os);
     elements.setupDownloadAgain.textContent = `Baixar ${setup.label} novamente`;
     elements.setupModal.hidden = false;
-    elements.setupModal.style.display = "flex";
     document.body.classList.add("modal-open");
   }
 
   function closeSetupModal() {
     elements.setupModal.hidden = true;
-    elements.setupModal.style.display = "none";
     document.body.classList.remove("modal-open");
   }
 
@@ -230,38 +229,17 @@
     });
   }
 
-  const SVGS = {
-    site: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"></path><path d="M10 14 21 3"></path><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg>`,
-    github: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>`,
-    download: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>`,
-    readme: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>`
-  };
-
-  const LANG_COLORS = {
-    javascript: "#f1e05a",
-    typescript: "#3178c6",
-    html: "#e34c26",
-    css: "#563d7c",
-    python: "#3572a5",
-    java: "#b07219",
-    shell: "#89e051",
-    go: "#00add8",
-    rust: "#dea584"
-  };
-
-  function createButton({ href, label, type, variant = "" }) {
+  function createButton({ href, label, variant = "" }) {
     const link = document.createElement("a");
     link.className = `button ${variant}`.trim();
     link.href = href;
     link.target = "_blank";
     link.rel = "noreferrer";
-    
-    const svgIcon = SVGS[type] || "";
-    link.innerHTML = `${svgIcon}<span>${label}</span>`;
+    link.textContent = label;
     return link;
   }
 
-  function renderProject(project, index) {
+  function renderProject(project) {
     const card = elements.template.content.firstElementChild.cloneNode(true);
     const title = card.querySelector("h2");
     const description = card.querySelector(".project-description");
@@ -271,51 +249,25 @@
 
     title.textContent = project.name;
     description.textContent = project.description || "Projeto sem descrição no GitHub.";
+    language.textContent = project.language || "Sem linguagem";
 
-    // Render language badge with colored dot
-    const langName = project.language || "Outro";
-    const langColor = LANG_COLORS[langName.toLowerCase()] || "#8b5cf6";
-    language.innerHTML = `
-      <div class="lang-wrapper">
-        <span class="lang-dot" style="background-color: ${langColor}"></span>
-        <span>${langName}</span>
-      </div>
-    `;
-
-    // Featured projects layout (mark first project or projets-github-pages as featured)
-    const isMainRepo = project.name.toLowerCase() === "projetos-github-pages";
-    const isFirst = index === 0;
-    if (isMainRepo || isFirst) {
-      card.classList.add("featured");
-      const featuredIndicator = document.createElement("span");
-      featuredIndicator.className = "meta-pill";
-      featuredIndicator.style.borderColor = "var(--primary)";
-      featuredIndicator.style.color = "var(--primary)";
-      featuredIndicator.style.fontWeight = "700";
-      featuredIndicator.innerHTML = "★ Destaque";
-      card.querySelector(".card-title-row").prepend(featuredIndicator);
-    }
-
-    // Meta items
     const updated = document.createElement("span");
-    updated.className = "meta-pill";
-    updated.textContent = `Atualizado: ${formatDate(project.updated_at)}`;
+    updated.textContent = `Atualizado ${formatDate(project.updated_at)}`;
     meta.append(updated);
 
     if (project.releases.length) {
       const release = document.createElement("span");
-      release.className = "meta-pill";
-      release.textContent = `${project.releases.length} Release${project.releases.length > 1 ? "s" : ""}`;
+      release.textContent = `${project.releases.length} release${project.releases.length > 1 ? "s" : ""}`;
       meta.append(release);
     }
 
-    // Action buttons
     if (project.siteLink) {
-      actions.append(createButton({ href: project.siteLink, label: "Acessar site", type: "site", variant: "primary" }));
+      actions.append(createButton({ href: project.siteLink, label: "Acessar site", variant: "primary" }));
     }
 
+    // Add GitHub repository button
     if (project.repoLink) {
-      actions.append(createButton({ href: project.repoLink, label: "Ver no GitHub", type: "github", variant: "" }));
+      actions.append(createButton({ href: project.repoLink, label: "Ver no GitHub", variant: "" }));
     }
 
     for (const download of project.downloads) {
@@ -323,20 +275,19 @@
         createButton({
           href: download.downloadUrl,
           label: `Baixar ${download.platform}`,
-          type: "download",
           variant: "download",
         })
       );
     }
 
-    actions.append(createButton({ href: project.readmeLink, label: "README", type: "readme", variant: "" }));
+    actions.append(createButton({ href: project.readmeLink, label: "README" }));
 
     return card;
   }
 
   function renderProjects() {
     const projects = getFilteredProjects();
-    elements.projectGrid.replaceChildren(...projects.map((proj, idx) => renderProject(proj, idx)));
+    elements.projectGrid.replaceChildren(...projects.map(renderProject));
 
     if (!state.projects.length) {
       setStatus("Nenhum projeto público foi encontrado.");

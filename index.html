@@ -4,211 +4,116 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Vitrine estática de projetos GitHub com releases e links dinâmicos.">
-    <title>Projetos GitHub — Portfólio Premium</title>
+    <title>Projetos GitHub</title>
     <link rel="preconnect" href="https://api.github.com">
-    <link rel="stylesheet" href="css/styles.css?v=20260604">
+    <link rel="stylesheet" href="css/styles.css?v=20260602-5">
   </head>
   <body>
-    
-    <!-- Header -->
     <header class="site-header">
-      <div class="container">
-        <nav class="nav-shell" aria-label="Navegação principal">
-          <a class="brand" href="#top" aria-label="Voltar ao início">
-            <span class="brand-mark" aria-hidden="true">GH</span>
-            <span class="brand-text">
-              <strong id="brandName">Projetos GitHub</strong>
-              <small id="brandHandle">@spxmiguel</small>
-            </span>
+      <nav class="nav-shell" aria-label="Navegação principal">
+        <a class="brand" href="#top" aria-label="Voltar ao início">
+          <span class="brand-mark" aria-hidden="true">GH</span>
+          <span>
+            <strong id="brandName">Projetos GitHub</strong>
+            <small id="brandHandle">@spxmiguel</small>
+          </span>
+        </a>
+        <div class="nav-actions">
+          <a class="fork-cta" id="forkCta" href="https://github.com/spxmiguel/projetos-github-pages/releases/latest/download/projetos-github-pages-universal.zip" target="_blank" rel="noreferrer">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 4px;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            <span>Create Yours</span>
           </a>
-          <div class="nav-actions">
-            <button class="theme-toggle" id="themeToggle" type="button" aria-label="Alternar tema" title="Alternar tema">
-              <span id="themeIcon" aria-hidden="true">◐</span>
-            </button>
-            <a class="button nav-link" id="profileLink" href="https://github.com/spxmiguel" target="_blank" rel="noreferrer">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
-              <span>GitHub</span>
-            </a>
-          </div>
-        </nav>
-      </div>
+          <button class="theme-toggle" id="themeToggle" type="button" aria-label="Alternar tema" title="Alternar tema">
+            <span id="themeIcon" aria-hidden="true">◐</span>
+          </button>
+          <a class="nav-link" id="profileLink" href="https://github.com/spxmiguel" target="_blank" rel="noreferrer">Ver GitHub</a>
+        </div>
+      </nav>
     </header>
 
     <main id="top">
-      
-      <!-- Hero Section -->
-      <section class="hero-section">
-        <div class="container">
-          <div class="hero-grid">
-            <div class="hero-copy">
-              <p class="eyebrow">Repositório de Vitrine</p>
-              <h1 id="heroTitle">Projetos GitHub</h1>
-              <p id="heroDescription">
-                Uma vitrine estática que sincroniza automaticamente com repositórios,
-                GitHub Pages, README e releases oficiais.
-              </p>
-              <div class="hero-links">
-                <a href="https://github.com/spxmiguel" class="social-pill" target="_blank" rel="noreferrer">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
-                  GitHub
-                </a>
-                <a href="https://linkedin.com" class="social-pill" target="_blank" rel="noreferrer">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
-                  LinkedIn
-                </a>
-                <a href="https://spxmiguel.github.io" class="social-pill" target="_blank" rel="noreferrer">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
-                  Website
-                </a>
-              </div>
-            </div>
-            
-            <div class="hero-side">
-              <!-- Profile Panel -->
-              <div class="profile-panel" id="profilePanel">
-                <div class="profile-avatar-wrapper">
-                  <img id="profileImage" src="" alt="Foto de perfil">
-                </div>
-                <div class="profile-info">
-                  <strong id="profileName">spxmiguel</strong>
-                  <span>Software Developer</span>
-                </div>
-              </div>
-              
-              <!-- Stats summary -->
-              <div class="hero-stats" aria-label="Resumo dos projetos">
-                <div class="stat-card">
-                  <strong id="repoCount">0</strong>
-                  <span>Projetos</span>
-                </div>
-                <div class="stat-card">
-                  <strong id="releaseCount">0</strong>
-                  <span>Releases</span>
-                </div>
-                <div class="stat-card">
-                  <strong id="languageCount">0</strong>
-                  <span>Linguagens</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- About Section -->
-      <section class="about-section">
-        <div class="container">
-          <h2 class="section-title">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-            Sobre Mim
-          </h2>
-          <div class="about-grid">
-            <div class="about-card">
-              <p>
-                Desenvolvedor de software focado em criar soluções modernas, elegantes e funcionais. Especialista em construir interfaces responsivas com foco total na experiência do usuário (UX), aliando tecnologia de ponta e designs limpos inspirados em empresas de destaque global como Vercel, Stripe e Linear.
-              </p>
-            </div>
-            <div class="about-card">
-              <p style="margin-bottom: 12px; font-weight: 600;">Principais Habilidades & Stack</p>
-              <div class="skills-wrapper">
-                <span class="skill-tag">JavaScript (ES6+)</span>
-                <span class="skill-tag">HTML5 / CSS3</span>
-                <span class="skill-tag">GitHub API</span>
-                <span class="skill-tag">Automation</span>
-                <span class="skill-tag">UI/UX Design</span>
-                <span class="skill-tag">Git & Workflows</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Controls (Search & Filters) -->
-      <section class="controls-section" aria-label="Filtros de projetos">
-        <div class="container">
-          <div class="controls-bar">
-            <div class="search-field">
-              <span class="search-icon">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-              </span>
-              <input id="searchInput" type="search" placeholder="Buscar projeto pelo nome..." autocomplete="off">
-            </div>
-            <div class="select-field">
-              <select id="languageFilter" aria-label="Filtrar por linguagem">
-                <option value="all">Todas as Linguagens</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Status messages -->
-      <div class="container">
-        <section class="status" id="statusMessage" role="status" aria-live="polite">
-          Carregando projetos do GitHub...
-        </section>
-      </div>
-
-      <!-- Project Grid -->
-      <section class="projects-section">
-        <div class="container">
-          <h2 class="section-title">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-            Projetos & Portfólio
-          </h2>
-          <div class="project-grid" id="projectGrid" aria-label="Lista de projetos"></div>
-        </div>
-      </section>
-
-      <!-- Footer CTA -->
-      <section class="footer-cta">
-        <div class="container">
-          <p class="fineprint-cta" id="fineprintCta" hidden>
-            Quer construir sua própria vitrine? 
-            <a href="https://github.com/spxmiguel/projetos-github-pages/releases/latest/download/projetos-github-pages-universal.zip">Clique aqui e faça o download do instalador oficial</a>
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Projetos publicados</p>
+          <h1 id="heroTitle">Projetos GitHub</h1>
+          <p id="heroDescription">
+            Uma vitrine estática que sincroniza automaticamente com repositórios,
+            GitHub Pages, README e releases oficiais.
           </p>
         </div>
+        <div class="hero-side">
+          <div class="profile-panel" id="profilePanel" hidden>
+            <img id="profileImage" src="" alt="">
+            <div>
+              <strong id="profileName">spxmiguel</strong>
+              <span>Projetos no GitHub</span>
+            </div>
+          </div>
+          <div class="hero-stats" aria-label="Resumo dos projetos">
+            <div>
+              <strong id="repoCount">0</strong>
+              <span>Projetos</span>
+            </div>
+            <div>
+              <strong id="releaseCount">0</strong>
+              <span>Releases</span>
+            </div>
+            <div>
+              <strong id="languageCount">0</strong>
+              <span>Linguagens</span>
+            </div>
+          </div>
+        </div>
       </section>
+
+      <section class="controls" aria-label="Filtros de projetos">
+        <label class="search-field" for="searchInput">
+          <span>Buscar</span>
+          <input id="searchInput" type="search" placeholder="Nome do projeto" autocomplete="off">
+        </label>
+        <label class="select-field" for="languageFilter">
+          <span>Linguagem</span>
+          <select id="languageFilter">
+            <option value="all">Todas</option>
+          </select>
+        </label>
+      </section>
+
+      <section class="status" id="statusMessage" role="status" aria-live="polite">
+        Carregando projetos do GitHub...
+      </section>
+
+        <section class="project-grid" id="projectGrid" aria-label="Lista de projetos"></section>
+
+        <p class="fineprint-cta" id="fineprintCta" hidden>
+          quer ter o seu também? <a href="https://github.com/spxmiguel/projetos-github-pages/releases/latest/download/projetos-github-pages-universal.zip">clique aqui</a>
+        </p>
     </main>
 
-    <!-- Site Footer -->
-    <footer class="site-footer">
-      <div class="container">
-        <p>&copy; 2026 spxmiguel. Desenvolvido com foco em alta performance e design premium.</p>
-      </div>
-    </footer>
-
-    <!-- Project Card Template -->
     <template id="projectCardTemplate">
       <article class="project-card">
         <div class="card-head">
-          <div class="card-title-row">
+          <div>
             <h2></h2>
-            <span class="language-badge"></span>
+            <p class="project-description"></p>
           </div>
-          <p class="project-description"></p>
+          <span class="language-badge"></span>
         </div>
         <div class="project-meta"></div>
         <div class="actions"></div>
       </article>
     </template>
 
-    <!-- Setup Modal (Installer) -->
     <section class="setup-modal" id="setupModal" aria-labelledby="setupModalTitle" aria-modal="true" role="dialog" hidden>
       <div class="setup-backdrop" data-close-setup></div>
       <div class="setup-dialog">
         <button class="setup-close" type="button" aria-label="Fechar" data-close-setup>×</button>
-        <div class="modal-header-decor">
-          <span class="red"></span>
-          <span class="yellow"></span>
-          <span class="green"></span>
-        </div>
-        <p class="eyebrow" style="margin-top: 10px;">Setup Automatizado</p>
-        <h2 id="setupModalTitle">Baixando pacote de instalação</h2>
+        <p class="eyebrow">Baixando setup</p>
+        <h2 id="setupModalTitle">Seu pacote está baixando</h2>
         <p id="setupDetectedText">Detectei seu sistema e escolhi o pacote certo.</p>
 
         <div class="os-picker" aria-label="Escolher sistema operacional">
-          <span>Outro Sistema Operacional? Escolha abaixo:</span>
+          <span>Detecção de OS errado? Escolha o certo:</span>
           <div>
             <button type="button" data-os="windows">Windows</button>
             <button type="button" data-os="mac">macOS</button>
@@ -217,21 +122,16 @@
         </div>
 
         <ol class="setup-steps" id="setupSteps"></ol>
+
         <div class="setup-actions">
           <a class="button primary" id="setupDownloadAgain" href="#" rel="noreferrer">Baixar novamente</a>
-          <a class="button" href="https://github.com/spxmiguel/projetos-github-pages/releases/latest" target="_blank" rel="noreferrer">Ver Releases oficiais</a>
+          <a class="button" href="https://github.com/spxmiguel/projetos-github-pages/releases/latest" target="_blank" rel="noreferrer">Ver release</a>
         </div>
       </div>
     </section>
-    <!-- Floating Badge "Create Yours" (canto inferior direito) -->
-    <a class="fork-cta-badge" id="createYoursCta" href="https://github.com/spxmiguel/projetos-github-pages/releases/latest/download/projetos-github-pages-universal.zip" target="_blank" rel="noreferrer">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-      <span>Create Yours</span>
-    </a>
 
-    <!-- Scripts -->
-    <script src="js/config.js?v=20260604-v2"></script>
-    <script src="js/github.js?v=20260604-v2"></script>
-    <script src="js/app.js?v=20260604-v2"></script>
+    <script src="js/config.js?v=20260602-5"></script>
+    <script src="js/github.js?v=20260602-5"></script>
+    <script src="js/app.js?v=20260602-5"></script>
   </body>
 </html>
