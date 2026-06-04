@@ -740,11 +740,54 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
   z-index: 100;
   padding: 20px;
+}
+
+.setup-modal:not([hidden]) {
+  display: flex;
+}
+
+/* Floating Badge "Create Yours" */
+.fork-cta-badge {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 45;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--surface-glass);
+  backdrop-filter: blur(12px) saturate(180%);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text);
+  text-decoration: none;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  box-shadow: var(--shadow);
+  transition: var(--transition);
+}
+
+.fork-cta-badge:hover {
+  transform: translateY(-3px) scale(1.02);
+  border-color: var(--primary);
+  box-shadow: var(--shadow-glow);
+  color: #ffffff;
+}
+
+.fork-cta-badge svg {
+  color: var(--primary);
+  transition: var(--transition);
+}
+
+.fork-cta-badge:hover svg {
+  transform: rotate(90deg);
 }
 
 .setup-backdrop {
