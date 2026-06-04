@@ -1,15 +1,13 @@
 (function () {
-  // Load local config override if present (to bypass GitHub Pages build delays)
   try {
     const override = localStorage.getItem("github-projects-config-override");
     if (override) {
       const parsed = JSON.parse(override);
       const usernameMatch = parsed.githubUsername === window.PORTFOLIO_CONFIG.githubUsername;
       const repoMatch = parsed.repoName === window.PORTFOLIO_CONFIG.repoName;
-      const tokenIsStale = window.PORTFOLIO_CONFIG.encryptedToken && 
-                           window.PORTFOLIO_CONFIG.encryptedToken !== parsed.encryptedToken;
+      const isExpired = !parsed.savedAt || (Date.now() - parsed.savedAt > 10 * 60 * 1000);
       
-      if (usernameMatch && repoMatch && !tokenIsStale) {
+      if (usernameMatch && repoMatch && !isExpired) {
         Object.assign(window.PORTFOLIO_CONFIG, parsed);
       } else {
         localStorage.removeItem("github-projects-config-override");
@@ -618,6 +616,7 @@
       
       // Save configuration locally to bypass GitHub Pages build delays
       try {
+        config.savedAt = Date.now();
         localStorage.setItem("github-projects-config-override", JSON.stringify(config));
       } catch (e) {}
 
@@ -700,6 +699,7 @@
       
       // Save configuration locally to bypass GitHub Pages build delays
       try {
+        config.savedAt = Date.now();
         localStorage.setItem("github-projects-config-override", JSON.stringify(config));
       } catch (e) {}
 
@@ -746,65 +746,7 @@
     }).format(new Date(dateValue));
   }
 
-  async function fetchCommits(owner, repo, container) {
-    const listElement = container.querySelector(".commit-list");
-    if (!listElement) return;
 
-    try {
-      const headers = {
-        "Accept": "application/vnd.github+json",
-      };
-      if (decryptedToken) {
-        headers["Authorization"] = `token ${decryptedToken}`;
-      }
-
-      const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/commits?per_page=3`, { headers });
-      if (!response.ok) {
-        throw new Error();
-      }
-
-      const commits = await response.json();
-      listElement.innerHTML = "";
-
-      if (commits.length === 0) {
-        listElement.innerHTML = '<li style="color: var(--text-muted); font-size: 0.78rem; padding: 4px 0;">Nenhum commit encontrado.</li>';
-        return;
-      }
-
-      for (const item of commits) {
-        const li = document.createElement("li");
-        li.style.display = "flex";
-        li.style.flexDirection = "column";
-        li.style.gap = "2px";
-
-        const shaShort = item.sha.substring(0, 7);
-        const message = item.commit.message.split("\n")[0];
-        
-        const commitLink = document.createElement("a");
-        commitLink.href = item.html_url;
-        commitLink.target = "_blank";
-        commitLink.rel = "noreferrer";
-        commitLink.style.color = "var(--primary)";
-        commitLink.style.textDecoration = "none";
-        commitLink.style.fontWeight = "600";
-        commitLink.style.fontFamily = "var(--font-mono)";
-        commitLink.style.fontSize = "0.78rem";
-        commitLink.textContent = `${shaShort}: ${message}`;
-
-        const author = item.commit.author.name;
-        const date = formatDate(item.commit.author.date);
-        const metaSpan = document.createElement("span");
-        metaSpan.style.color = "var(--text-muted)";
-        metaSpan.style.fontSize = "0.7rem";
-        metaSpan.textContent = `por ${author} em ${date}`;
-
-        li.append(commitLink, metaSpan);
-        listElement.append(li);
-      }
-    } catch (e) {
-      listElement.innerHTML = '<li style="color: #ff5f56; font-size: 0.78rem; padding: 4px 0;">Não foi possível carregar os commits.</li>';
-    }
-  }
 
   function getLanguages(projects) {
     return [...new Set(projects.map((project) => project.language).filter(Boolean))].sort((a, b) =>
@@ -873,7 +815,6 @@
     const description = card.querySelector(".project-description");
     const language = card.querySelector(".language-badge");
     const meta = card.querySelector(".project-meta");
-    const details = card.querySelector(".project-details");
     const actions = card.querySelector(".actions");
 
     // Highlight pinned project
@@ -893,6 +834,12 @@
     const updated = document.createElement("span");
     updated.textContent = `📅 ${formatDate(project.updated_at)}`;
     meta.append(updated);
+
+    if (project.commitCount !== undefined && project.commitCount !== null) {
+      const commitsSpan = document.createElement("span");
+      commitsSpan.textContent = `💬 ${project.commitCount} commit${project.commitCount !== 1 ? "s" : ""}`;
+      meta.append(commitsSpan);
+    }
 
     if (project.releases.length) {
       const release = document.createElement("span");
@@ -942,27 +889,6 @@
     }
 
     actions.append(createButton({ href: project.readmeLink, label: "README" }));
-
-    // Collapsible commits action
-    const commitsBtn = document.createElement("button");
-    commitsBtn.type = "button";
-    commitsBtn.className = "button info-toggle";
-    commitsBtn.textContent = "💬 Commits";
-    commitsBtn.style.padding = "8px 14px";
-    commitsBtn.style.fontSize = "0.8rem";
-    commitsBtn.addEventListener("click", (event) => {
-      event.preventDefault();
-      const isHidden = details.style.display === "none";
-      details.style.display = isHidden ? "block" : "none";
-      commitsBtn.style.borderColor = isHidden ? "var(--primary)" : "var(--border)";
-      commitsBtn.style.color = isHidden ? "var(--primary)" : "var(--text)";
-      
-      if (isHidden && !details.dataset.loaded) {
-        details.dataset.loaded = "true";
-        fetchCommits(project.owner.login, project.name, details);
-      }
-    });
-    actions.append(commitsBtn);
 
     return card;
   }

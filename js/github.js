@@ -58,13 +58,15 @@
     }
   }
 
-  async function requestJson(url) {
-    const response = await fetch(url, {
-      headers: {
-        Accept: "application/vnd.github+json",
-        "X-GitHub-Api-Version": "2022-11-28",
-      },
-    });
+  async function requestJson(url, token = null) {
+    const headers = {
+      Accept: "application/vnd.github+json",
+      "X-GitHub-Api-Version": "2022-11-28",
+    };
+    if (token) {
+      headers["Authorization"] = `token ${token}`;
+    }
+    const response = await fetch(url, { headers });
 
     if (!response.ok) {
       const error = new Error(`GitHub API retornou ${response.status}`);
@@ -75,14 +77,14 @@
     return response.json();
   }
 
-  async function fetchAllPages(url) {
+  async function fetchAllPages(url, token = null) {
     const items = [];
     let page = 1;
 
     while (true) {
       const separator = url.includes("?") ? "&" : "?";
       const pageUrl = `${url}${separator}per_page=${PAGE_SIZE}&page=${page}`;
-      const pageItems = await requestJson(pageUrl);
+      const pageItems = await requestJson(pageUrl, token);
 
       items.push(...pageItems);
 
@@ -120,18 +122,14 @@
   }
 
   function findSiteLink(repo) {
-    // Only use the homepage if it appears to be a GitHub Pages URL.
-    // This avoids arbitrary links (e.g., a README link) being used as the project site.
     if (repo.homepage && /^https?:\/\//i.test(repo.homepage) && repo.homepage.includes('.github.io')) {
       return repo.homepage;
     }
 
-    // If the repository has GitHub Pages enabled, construct the default URL.
     if (repo.has_pages) {
       return `https://${repo.owner.login}.github.io/${repo.name}/`;
     }
 
-    // Otherwise, no explicit site link.
     return null;
   }
 
@@ -155,9 +153,9 @@
     );
   }
 
-  async function fetchReadmeSiteLink(repo) {
+  async function fetchReadmeSiteLink(repo, token = null) {
     try {
-      const readme = await requestJson(`${API_BASE}/repos/${repo.full_name}/readme`);
+      const readme = await requestJson(`${API_BASE}/repos/${repo.full_name}/readme`, token);
       const readmeText = decodeBase64(readme.content || "");
       return findReadmeSiteLink(readmeText, repo);
     } catch (error) {
@@ -165,8 +163,8 @@
     }
   }
 
-  async function fetchRepoReleases(repo) {
-    const releases = await requestJson(`${API_BASE}/repos/${repo.full_name}/releases`);
+  async function fetchRepoReleases(repo, token = null) {
+    const releases = await requestJson(`${API_BASE}/repos/${repo.full_name}/releases`, token);
     const officialReleases = releases.filter((release) => !release.draft);
     const downloads = [];
 
@@ -194,10 +192,41 @@
     };
   }
 
-  async function fetchFreshProjectsData(config) {
+  async function fetchCommitCount(repo, token = null) {
+    const url = `${API_BASE}/repos/${repo.full_name}/commits?per_page=1`;
+    try {
+      const headers = {
+        Accept: "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+      };
+      if (token) {
+        headers["Authorization"] = `token ${token}`;
+      }
+      const response = await fetch(url, { headers });
+      if (!response.ok) return 0;
+
+      const linkHeader = response.headers.get("Link");
+      if (!linkHeader) {
+        const commits = await response.json();
+        return commits.length;
+      }
+
+      const match = linkHeader.match(/page=(\d+)>;\s*rel="last"/);
+      if (match) {
+        return parseInt(match[1], 10);
+      }
+
+      const commits = await response.json();
+      return commits.length;
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  async function fetchFreshProjectsData(config, token = null) {
     const username = config.githubUsername;
     const sort = config.sortBy || "updated";
-    const repos = await fetchAllPages(`${API_BASE}/users/${username}/repos?sort=${sort}`);
+    const repos = await fetchAllPages(`${API_BASE}/users/${username}/repos?sort=${sort}`, token);
     const visibleRepos = repos.filter((repo) => {
       if (!config.includeForks && repo.fork) return false;
       if (!config.includeArchived && repo.archived) return false;
@@ -207,29 +236,34 @@
     const enrichedRepos = await Promise.all(
       visibleRepos.map(async (repo) => {
         const directSiteLink = findSiteLink(repo);
-        const readmeSiteLink = directSiteLink ? null : await fetchReadmeSiteLink(repo);
+        const readmeSiteLink = directSiteLink ? null : await fetchReadmeSiteLink(repo, token);
 
         try {
-          const releaseData = await fetchRepoReleases(repo);
+          const releaseData = await fetchRepoReleases(repo, token);
+          const commitCount = await fetchCommitCount(repo, token);
 
           return {
             ...repo,
-            // Prefer explicit homepage or GitHub Pages detected via API
-            // If none, construct default GitHub Pages URL for the repo
             siteLink: directSiteLink || `https://${config.githubUsername}.github.io/${repo.name}/`,
             readmeLink: findReadmeLink(repo),
             repoLink: repo.html_url,
             releases: releaseData.releases,
             downloads: releaseData.downloads,
+            commitCount: commitCount,
             releasesError: null,
           };
         } catch (error) {
+          let commitCount = 0;
+          try {
+            commitCount = await fetchCommitCount(repo, token);
+          } catch (e) {}
           return {
             ...repo,
             siteLink: directSiteLink || readmeSiteLink,
             readmeLink: findReadmeLink(repo),
             releases: [],
             downloads: [],
+            commitCount: commitCount,
             releasesError: error,
           };
         }
@@ -239,7 +273,7 @@
     return enrichedRepos;
   }
 
-  async function fetchProjectsData(config) {
+  async function fetchProjectsData(config, token = null) {
     const cached = readCache(config);
 
     if (cached) {
@@ -253,7 +287,7 @@
     }
 
     try {
-      const projects = await fetchFreshProjectsData(config);
+      const projects = await fetchFreshProjectsData(config, token);
       writeCache(config, projects);
 
       return {
