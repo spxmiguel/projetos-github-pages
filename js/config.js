@@ -9,7 +9,9 @@ window.PORTFOLIO_CONFIG = {
   includeForks: false,
   includeArchived: true,
   sortBy: "updated",
-  encryptedToken: "d8886f54e3150df3f0c55d910c776008.efa71389b213170f0c3b64b0.2145d9c27cadac22c2a67b4c68a188d38aabf4610c0789df32302237cbc38f99137b955f9f6a86038edba701c5a81c0f4ab16ae29cbc411c",
+  encryptedToken: "58d768fe41565f2cd0f1dfc94bcd06fd.51c884f6a344a2c976b4b007.bd4a085a31e56ad282150edf6bb7c54392975243ba5f8055c7dce717a5743909963d47cf85aadd3f1378ce8b8658e2787a00ede2c20522d6",
+  encryptedGroqKey: "82a9bff939b0a5258af96ac243fb5910.d78d3aafbc96f20e5489ff22.069e55aa89b30d1fe988f1affc518e0e887626f34466a9123c0f683880af51c4f8599bb645973da632082c835ec95329d71e65c43baaed6b8ac53cc8fb21c6bfd3a292a20a9ea58f",
   pinnedRepos: ["LootFlow","CraftServer","music-sync","video-downloader"],
-  hiddenRepos: [],
+  hiddenRepos: ["projetos-github-pages"],
+  blogPosts: [],
 };
