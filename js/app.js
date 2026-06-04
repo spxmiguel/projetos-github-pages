@@ -163,7 +163,13 @@
     applyCtaMode(config.ctaMode || "top");
     elements.profileLink.href = `https://github.com/${config.githubUsername}`;
     elements.heroTitle.textContent = config.siteTitle;
-    elements.heroDescription.textContent = config.siteDescription;
+    if (config.siteDescription) {
+      elements.heroDescription.textContent = config.siteDescription;
+      elements.heroDescription.hidden = false;
+    } else {
+      elements.heroDescription.textContent = "";
+      elements.heroDescription.hidden = true;
+    }
     elements.profileName.textContent = config.githubUsername;
 
     const profileImg = config.profileImageUrl || "assets/profile/default-avatar.png";

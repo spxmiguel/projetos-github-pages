@@ -240,7 +240,7 @@ function setup(payload) {
   const imagePath = payload.imageFile ? saveImageFile(payload.imageFile) : "";
   const profileImageUrl = imagePath || (payload.profileImageUrl || "").trim();
   const title = (payload.siteTitle || "").trim() || `Projetos GitHub de ${username}`;
-  const description = (payload.siteDescription || "").trim() || "Minha vitrine de projetos no GitHub.";
+  const description = (payload.siteDescription || "").trim();
 
   updateConfig({
     githubUsername: username,
