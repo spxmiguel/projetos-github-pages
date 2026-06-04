@@ -17,6 +17,13 @@
   --primary: #00e5ff;
   --primary-dark: #00b8cc;
   --primary-glow: rgba(0, 229, 255, 0.12);
+  --primary-text: #05050a;
+  --primary-hover: #5cffea;
+  --primary-hover-text: #05050a;
+  --primary-border-glow: rgba(0, 229, 255, 0.25);
+  --primary-glow-hover: rgba(0, 229, 255, 0.2);
+  --btn-shadow-glow: rgba(0, 229, 255, 0.3);
+  --scrollbar-thumb: rgba(255, 255, 255, 0.1);
   
   --accent: #0ea5e9;
   --accent-glow: rgba(14, 165, 233, 0.12);
@@ -35,18 +42,25 @@
 }
 
 :root[data-theme="light"] {
-  --bg: #f3f4f6;
+  --bg: #f8fafc;
   --surface: #ffffff;
-  --surface-hover: #f9fafb;
-  --surface-glass: rgba(243, 244, 246, 0.85);
-  --border: rgba(0, 0, 0, 0.06);
-  --border-hover: rgba(0, 229, 255, 0.4);
-  --text: #111827;
-  --text-muted: #6b7280;
+  --surface-hover: #f1f5f9;
+  --surface-glass: rgba(248, 250, 252, 0.85);
+  --border: rgba(15, 23, 42, 0.08);
+  --border-hover: rgba(8, 145, 178, 0.35);
+  --text: #0f172a;
+  --text-muted: #64748b;
   
   --primary: #0891b2;
   --primary-dark: #0e7490;
   --primary-glow: rgba(8, 145, 178, 0.08);
+  --primary-text: #ffffff;
+  --primary-hover: #06b6d4;
+  --primary-hover-text: #ffffff;
+  --primary-border-glow: rgba(8, 145, 178, 0.25);
+  --primary-glow-hover: rgba(8, 145, 178, 0.15);
+  --btn-shadow-glow: rgba(8, 145, 178, 0.2);
+  --scrollbar-thumb: rgba(0, 0, 0, 0.15);
   
   --accent: #0284c7;
   --accent-glow: rgba(2, 132, 199, 0.08);
@@ -224,8 +238,8 @@ body {
 .fork-cta:hover {
   transform: translateY(-3px) scale(1.02) !important;
   border-color: var(--primary) !important;
-  box-shadow: 0 0 20px rgba(0, 229, 255, 0.2) !important;
-  color: #ffffff !important;
+  box-shadow: 0 0 20px var(--btn-shadow-glow) !important;
+  color: var(--text) !important;
 }
 
 .fork-cta svg {
@@ -263,28 +277,30 @@ body {
 
 .button.primary {
   background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-  color: #05050a;
+  color: var(--primary-text);
   border: none;
-  box-shadow: 0 4px 15px rgba(0, 229, 255, 0.2);
+  box-shadow: 0 4px 15px var(--btn-shadow-glow);
   font-weight: 700;
 }
 
 .button.primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 229, 255, 0.4);
-  background: #5cffea;
+  box-shadow: 0 6px 20px var(--btn-shadow-glow);
+  background: var(--primary-hover);
+  color: var(--primary-hover-text);
 }
 
 .cta-btn {
   background: var(--primary) !important;
-  color: #05050a !important;
+  color: var(--primary-text) !important;
   border: none !important;
   font-weight: 700 !important;
 }
 
 .cta-btn:hover {
-  background: #5cffea !important;
-  box-shadow: 0 0 15px rgba(0, 229, 255, 0.4) !important;
+  background: var(--primary-hover) !important;
+  color: var(--primary-hover-text) !important;
+  box-shadow: 0 0 15px var(--btn-shadow-glow) !important;
   transform: translateY(-1px) !important;
 }
 
@@ -296,7 +312,7 @@ body {
 
 .outline-btn:hover {
   border-color: var(--text) !important;
-  background: rgba(255, 255, 255, 0.05) !important;
+  background: var(--theme-toggle-hover) !important;
 }
 
 .theme-toggle {
@@ -482,7 +498,7 @@ main {
 
 .search-field input {
   padding-left: 44px;
-  background: #14171f;
+  background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 8px;
   color: var(--text);
@@ -495,7 +511,7 @@ main {
 .search-field input:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 15px rgba(0, 229, 255, 0.15);
+  box-shadow: 0 0 15px var(--primary-glow);
 }
 
 .select-field {
@@ -504,7 +520,7 @@ main {
 }
 
 .select-field select {
-  background: #14171f;
+  background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 8px;
   color: var(--text);
@@ -530,7 +546,7 @@ main {
 .select-field select:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 15px rgba(0, 229, 255, 0.15);
+  box-shadow: 0 0 15px var(--primary-glow);
 }
 
 /* Status Message */
@@ -597,7 +613,7 @@ main {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid var(--border);
   padding-bottom: 12px;
 }
 
@@ -621,8 +637,8 @@ main {
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--primary);
-  background: rgba(0, 229, 255, 0.1);
-  border: 1px solid rgba(0, 229, 255, 0.2);
+  background: var(--primary-glow);
+  border: 1px solid var(--primary-border-glow);
   padding: 4px 10px;
   border-radius: 4px;
   align-self: center;
@@ -638,9 +654,9 @@ main {
 }
 
 .project-card .actions .button {
-  background: #1c212a;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  color: #ffffff;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
   padding: 10px;
   font-size: 0.8rem;
   border-radius: 6px;
@@ -649,18 +665,18 @@ main {
 }
 
 .project-card .actions .button:hover {
-  background: #252c39;
-  border-color: rgba(255, 255, 255, 0.12);
+  background: var(--surface-hover);
+  border-color: var(--border-hover);
 }
 
 .project-card .actions .button.primary {
-  background: rgba(0, 229, 255, 0.1);
-  border-color: rgba(0, 229, 255, 0.3);
+  background: var(--primary-glow);
+  border-color: var(--primary-border-glow);
   color: var(--primary);
 }
 
 .project-card .actions .button.primary:hover {
-  background: rgba(0, 229, 255, 0.2);
+  background: var(--primary-glow-hover);
   border-color: var(--primary);
 }
 
@@ -718,7 +734,7 @@ main {
 }
 
 .about-skills span {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--bg);
   border: 1px solid var(--border);
   padding: 6px 12px;
   border-radius: 6px;
@@ -886,7 +902,7 @@ main {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--bg);
   border: 1px solid var(--border);
   padding: 16px;
   border-radius: var(--radius-md);
@@ -927,7 +943,7 @@ main {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  background: rgba(0, 0, 0, 0.3);
+  background: var(--bg);
   border: 1px solid var(--border);
   padding: 20px;
   border-radius: var(--radius-md);
@@ -937,7 +953,8 @@ main {
 
 .setup-steps li {
   line-height: 1.6;
-  color: var(--text-muted);
+  color: var(--text);
+  opacity: 0.85;
 }
 
 .setup-steps li::marker {
@@ -1038,7 +1055,7 @@ textarea:focus, input[type="text"]:focus, input[type="url"]:focus, input[type="p
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--surface-hover);
+  background: var(--scrollbar-thumb);
   border-radius: 4px;
 }
 
