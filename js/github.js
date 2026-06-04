@@ -2,7 +2,7 @@
   const API_BASE = "https://api.github.com";
   const PAGE_SIZE = 100;
   const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
-  const CACHE_VERSION = 2;
+  const CACHE_VERSION = 3;
 
   function getCacheKey(config) {
     const username = (config.githubUsername || "").toLowerCase();

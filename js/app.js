@@ -458,15 +458,26 @@
     
     listContainer.innerHTML = "";
     
-    const sortedProjects = [...state.projects].sort((a, b) => a.name.localeCompare(b.name));
+    if (!config.pinnedRepos) config.pinnedRepos = [];
+    if (!config.hiddenRepos) config.hiddenRepos = [];
+    
+    const pinned = config.pinnedRepos;
+    const sortedProjects = [...state.projects].sort((a, b) => {
+      const aPinned = pinned.includes(a.name);
+      const bPinned = pinned.includes(b.name);
+      
+      if (aPinned && !bPinned) return -1;
+      if (!aPinned && bPinned) return 1;
+      if (aPinned && bPinned) {
+        return pinned.indexOf(a.name) - pinned.indexOf(b.name);
+      }
+      return a.name.localeCompare(b.name);
+    });
     
     if (sortedProjects.length === 0) {
       listContainer.innerHTML = '<span style="color: var(--text-muted); font-size: 0.85rem; padding: 8px;">Nenhum projeto carregado.</span>';
       return;
     }
-    
-    if (!config.pinnedRepos) config.pinnedRepos = [];
-    if (!config.hiddenRepos) config.hiddenRepos = [];
     
     for (const project of sortedProjects) {
       const row = document.createElement("div");
@@ -485,16 +496,72 @@
       nameSpan.style.textOverflow = "ellipsis";
       nameSpan.style.overflow = "hidden";
       nameSpan.style.whiteSpace = "nowrap";
-      nameSpan.style.maxWidth = "55%";
+      nameSpan.style.maxWidth = "45%";
       
       const actionsDiv = document.createElement("div");
       actionsDiv.style.display = "flex";
-      actionsDiv.style.gap = "8px";
+      actionsDiv.style.alignItems = "center";
+      actionsDiv.style.gap = "6px";
+      
+      const isPinned = pinned.includes(project.name);
+      
+      // If pinned, show move up/down controls
+      if (isPinned) {
+        const orderDiv = document.createElement("div");
+        orderDiv.style.display = "flex";
+        orderDiv.style.gap = "2px";
+        
+        const pinIdx = pinned.indexOf(project.name);
+        
+        // Up button
+        const upBtn = document.createElement("button");
+        upBtn.type = "button";
+        upBtn.innerHTML = "▲";
+        upBtn.style.padding = "2px 6px";
+        upBtn.style.fontSize = "0.7rem";
+        upBtn.style.borderRadius = "3px";
+        upBtn.style.border = "1px solid var(--border)";
+        upBtn.style.background = "transparent";
+        upBtn.style.color = "var(--text-muted)";
+        upBtn.style.cursor = pinIdx > 0 ? "pointer" : "not-allowed";
+        upBtn.style.opacity = pinIdx > 0 ? "1" : "0.3";
+        if (pinIdx > 0) {
+          upBtn.addEventListener("click", () => {
+            const temp = pinned[pinIdx - 1];
+            pinned[pinIdx - 1] = pinned[pinIdx];
+            pinned[pinIdx] = temp;
+            renderAdminProjectsList();
+          });
+        }
+        
+        // Down button
+        const downBtn = document.createElement("button");
+        downBtn.type = "button";
+        downBtn.innerHTML = "▼";
+        downBtn.style.padding = "2px 6px";
+        downBtn.style.fontSize = "0.7rem";
+        downBtn.style.borderRadius = "3px";
+        downBtn.style.border = "1px solid var(--border)";
+        downBtn.style.background = "transparent";
+        downBtn.style.color = "var(--text-muted)";
+        downBtn.style.cursor = pinIdx < pinned.length - 1 ? "pointer" : "not-allowed";
+        downBtn.style.opacity = pinIdx < pinned.length - 1 ? "1" : "0.3";
+        if (pinIdx < pinned.length - 1) {
+          downBtn.addEventListener("click", () => {
+            const temp = pinned[pinIdx + 1];
+            pinned[pinIdx + 1] = pinned[pinIdx];
+            pinned[pinIdx] = temp;
+            renderAdminProjectsList();
+          });
+        }
+        
+        orderDiv.append(upBtn, downBtn);
+        actionsDiv.append(orderDiv);
+      }
       
       // Pin Button
       const pinBtn = document.createElement("button");
       pinBtn.type = "button";
-      const isPinned = config.pinnedRepos.includes(project.name);
       pinBtn.innerHTML = isPinned ? "⭐ Fixado" : "☆ Fixar";
       pinBtn.style.padding = "4px 8px";
       pinBtn.style.fontSize = "0.75rem";
@@ -506,11 +573,11 @@
       pinBtn.style.transition = "var(--transition)";
       
       pinBtn.addEventListener("click", () => {
-        const pinIdx = config.pinnedRepos.indexOf(project.name);
+        const pinIdx = pinned.indexOf(project.name);
         if (pinIdx > -1) {
-          config.pinnedRepos.splice(pinIdx, 1);
+          pinned.splice(pinIdx, 1);
         } else {
-          config.pinnedRepos.push(project.name);
+          pinned.push(project.name);
         }
         renderAdminProjectsList();
       });
@@ -797,6 +864,9 @@
       const bPinned = pinned.includes(b.name);
       if (aPinned && !bPinned) return -1;
       if (!aPinned && bPinned) return 1;
+      if (aPinned && bPinned) {
+        return pinned.indexOf(a.name) - pinned.indexOf(b.name);
+      }
       return 0;
     });
 
