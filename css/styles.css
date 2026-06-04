@@ -891,4 +891,56 @@ textarea:focus {
   gap: 4px;
 }
 
+/* Commits / Extra Project Details */
+.project-details {
+  border-top: 1px dashed var(--border);
+  padding-top: 16px;
+  margin-top: 16px;
+  animation: modalEnter 0.3s ease;
+}
+
+.project-details h3 {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.commit-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.commit-list li {
+  padding-left: 12px;
+  border-left: 2px solid var(--primary);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+}
+
+.commit-list a {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  transition: var(--transition);
+}
+
+.commit-list a:hover {
+  color: var(--accent);
+}
+
+.commit-meta {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+
 

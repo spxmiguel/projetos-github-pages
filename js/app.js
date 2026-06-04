@@ -166,11 +166,10 @@
     elements.heroDescription.textContent = config.siteDescription;
     elements.profileName.textContent = config.githubUsername;
 
-    if (config.profileImageUrl) {
-      elements.profileImage.src = config.profileImageUrl;
-      elements.profileImage.alt = `Foto de ${config.githubUsername}`;
-      elements.profilePanel.hidden = false;
-    }
+    const profileImg = config.profileImageUrl || "assets/profile/default-avatar.png";
+    elements.profileImage.src = profileImg;
+    elements.profileImage.alt = `Foto de ${config.githubUsername}`;
+    elements.profilePanel.hidden = false;
   }
 
   function setStatus(message) {
@@ -741,6 +740,66 @@
     }).format(new Date(dateValue));
   }
 
+  async function fetchCommits(owner, repo, container) {
+    const listElement = container.querySelector(".commit-list");
+    if (!listElement) return;
+
+    try {
+      const headers = {
+        "Accept": "application/vnd.github+json",
+      };
+      if (decryptedToken) {
+        headers["Authorization"] = `token ${decryptedToken}`;
+      }
+
+      const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/commits?per_page=3`, { headers });
+      if (!response.ok) {
+        throw new Error();
+      }
+
+      const commits = await response.json();
+      listElement.innerHTML = "";
+
+      if (commits.length === 0) {
+        listElement.innerHTML = '<li style="color: var(--text-muted); font-size: 0.78rem; padding: 4px 0;">Nenhum commit encontrado.</li>';
+        return;
+      }
+
+      for (const item of commits) {
+        const li = document.createElement("li");
+        li.style.display = "flex";
+        li.style.flexDirection = "column";
+        li.style.gap = "2px";
+
+        const shaShort = item.sha.substring(0, 7);
+        const message = item.commit.message.split("\n")[0];
+        
+        const commitLink = document.createElement("a");
+        commitLink.href = item.html_url;
+        commitLink.target = "_blank";
+        commitLink.rel = "noreferrer";
+        commitLink.style.color = "var(--primary)";
+        commitLink.style.textDecoration = "none";
+        commitLink.style.fontWeight = "600";
+        commitLink.style.fontFamily = "var(--font-mono)";
+        commitLink.style.fontSize = "0.78rem";
+        commitLink.textContent = `${shaShort}: ${message}`;
+
+        const author = item.commit.author.name;
+        const date = formatDate(item.commit.author.date);
+        const metaSpan = document.createElement("span");
+        metaSpan.style.color = "var(--text-muted)";
+        metaSpan.style.fontSize = "0.7rem";
+        metaSpan.textContent = `por ${author} em ${date}`;
+
+        li.append(commitLink, metaSpan);
+        listElement.append(li);
+      }
+    } catch (e) {
+      listElement.innerHTML = '<li style="color: #ff5f56; font-size: 0.78rem; padding: 4px 0;">Não foi possível carregar os commits.</li>';
+    }
+  }
+
   function getLanguages(projects) {
     return [...new Set(projects.map((project) => project.language).filter(Boolean))].sort((a, b) =>
       a.localeCompare(b)
@@ -808,6 +867,7 @@
     const description = card.querySelector(".project-description");
     const language = card.querySelector(".language-badge");
     const meta = card.querySelector(".project-meta");
+    const details = card.querySelector(".project-details");
     const actions = card.querySelector(".actions");
 
     // Highlight pinned project
@@ -825,35 +885,78 @@
     language.textContent = project.language || "Sem linguagem";
 
     const updated = document.createElement("span");
-    updated.textContent = `Atualizado ${formatDate(project.updated_at)}`;
+    updated.textContent = `📅 ${formatDate(project.updated_at)}`;
     meta.append(updated);
 
     if (project.releases.length) {
       const release = document.createElement("span");
-      release.textContent = `${project.releases.length} release${project.releases.length > 1 ? "s" : ""}`;
+      release.textContent = `🏷️ ${project.releases.length} release${project.releases.length > 1 ? "s" : ""}`;
       meta.append(release);
     }
+
+    if (project.stargazers_count > 0) {
+      const stars = document.createElement("span");
+      stars.textContent = `⭐ ${project.stargazers_count}`;
+      meta.append(stars);
+    }
+
+    if (project.forks_count > 0) {
+      const forks = document.createElement("span");
+      forks.textContent = `🍴 ${project.forks_count}`;
+      meta.append(forks);
+    }
+
+    if (project.open_issues_count > 0) {
+      const issues = document.createElement("span");
+      issues.textContent = `⚠️ ${project.open_issues_count} issue${project.open_issues_count > 1 ? "s" : ""}`;
+      meta.append(issues);
+    }
+
+    const sizeKB = project.size || 0;
+    const size = document.createElement("span");
+    size.textContent = sizeKB > 1024 ? `📦 ${(sizeKB / 1024).toFixed(1)} MB` : `📦 ${sizeKB} KB`;
+    meta.append(size);
 
     if (project.siteLink) {
       actions.append(createButton({ href: project.siteLink, label: "Acessar site", variant: "primary" }));
     }
 
-    // Add GitHub repository button
     if (project.repoLink) {
       actions.append(createButton({ href: project.repoLink, label: "Ver no GitHub", variant: "" }));
     }
 
     for (const download of project.downloads) {
       actions.append(
-        createButton({
-          href: download.downloadUrl,
-          label: `Baixar ${download.platform}`,
-          variant: "download",
-        })
+          createButton({
+            href: download.downloadUrl,
+            label: `Baixar ${download.platform}`,
+            variant: "download",
+          })
       );
     }
 
     actions.append(createButton({ href: project.readmeLink, label: "README" }));
+
+    // Collapsible commits action
+    const commitsBtn = document.createElement("button");
+    commitsBtn.type = "button";
+    commitsBtn.className = "button info-toggle";
+    commitsBtn.textContent = "💬 Commits";
+    commitsBtn.style.padding = "8px 14px";
+    commitsBtn.style.fontSize = "0.8rem";
+    commitsBtn.addEventListener("click", (event) => {
+      event.preventDefault();
+      const isHidden = details.style.display === "none";
+      details.style.display = isHidden ? "block" : "none";
+      commitsBtn.style.borderColor = isHidden ? "var(--primary)" : "var(--border)";
+      commitsBtn.style.color = isHidden ? "var(--primary)" : "var(--text)";
+      
+      if (isHidden && !details.dataset.loaded) {
+        details.dataset.loaded = "true";
+        fetchCommits(project.owner.login, project.name, details);
+      }
+    });
+    actions.append(commitsBtn);
 
     return card;
   }
