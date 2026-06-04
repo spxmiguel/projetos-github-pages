@@ -65,9 +65,9 @@
     theme: localStorage.getItem("github-projects-theme") || "system",
   };
 
-  let decryptedToken = null;
-  let decryptedGroqKey = null;
-  let adminPassword = null;
+  let decryptedToken = sessionStorage.getItem("github-projects-session-token") || null;
+  let decryptedGroqKey = sessionStorage.getItem("github-projects-session-groq") || null;
+  let adminPassword = sessionStorage.getItem("github-projects-session-password") || null;
   const DEFAULT_GROQ_KEY = [103,115,107,95,53,81,54,119,102,100,86,77,87,97,81,90,69,85,56,105,99,52,116,85,87,71,100,121,98,51,70,89,79,88,65,97,82,102,67,118,82,90,71,118,86,102,112,68,99,114,121,81,97,104,68,74].map(c => String.fromCharCode(c)).join("");
 
   const SUN_SVG = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
@@ -688,6 +688,7 @@
       }
       
       decryptedToken = decrypted;
+      sessionStorage.setItem("github-projects-session-token", decrypted);
       
       // Decrypt Groq key if present, otherwise fallback to default
       if (config.encryptedGroqKey) {
@@ -699,8 +700,10 @@
       } else {
         decryptedGroqKey = DEFAULT_GROQ_KEY;
       }
+      sessionStorage.setItem("github-projects-session-groq", decryptedGroqKey);
       
       adminPassword = password;
+      sessionStorage.setItem("github-projects-session-password", password);
       elements.adminBtnIcon.innerHTML = UNLOCKED_SVG;
       showEditView();
     } catch (err) {
@@ -753,8 +756,11 @@
       } catch (e) {}
 
       decryptedToken = token;
+      sessionStorage.setItem("github-projects-session-token", token);
       decryptedGroqKey = groqKey;
+      sessionStorage.setItem("github-projects-session-groq", groqKey);
       adminPassword = password;
+      sessionStorage.setItem("github-projects-session-password", password);
       elements.adminBtnIcon.innerHTML = UNLOCKED_SVG;
       
       elements.adminSetupError.style.display = "none";
@@ -840,8 +846,11 @@
       } catch (e) {}
 
       decryptedToken = targetToken;
+      sessionStorage.setItem("github-projects-session-token", targetToken);
       decryptedGroqKey = targetGroqKey;
+      sessionStorage.setItem("github-projects-session-groq", targetGroqKey);
       adminPassword = targetPassword;
+      sessionStorage.setItem("github-projects-session-password", targetPassword);
       
       elements.adminEditSuccess.textContent = "Configurações salvas e publicadas! Reiniciando a página...";
       elements.adminEditSuccess.style.display = "block";
@@ -862,6 +871,10 @@
   function handleLogout() {
     decryptedToken = null;
     adminPassword = null;
+    decryptedGroqKey = null;
+    sessionStorage.removeItem("github-projects-session-token");
+    sessionStorage.removeItem("github-projects-session-groq");
+    sessionStorage.removeItem("github-projects-session-password");
     elements.adminBtnIcon.innerHTML = LOCKED_SVG;
     closeAdminModal();
   }
@@ -1406,5 +1419,8 @@ Formato do JSON de resposta:
   });
 
   applyTheme();
+  if (decryptedToken) {
+    elements.adminBtnIcon.innerHTML = UNLOCKED_SVG;
+  }
   loadProjects();
 })();
