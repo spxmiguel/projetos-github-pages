@@ -1024,7 +1024,20 @@
     meta.append(size);
 
     if (project.siteLink) {
-      actions.append(createButton({ href: project.siteLink, label: "Live Demo", variant: "primary" }));
+      let label = "Live Demo";
+      const repoNameLower = (project.name || "").toLowerCase();
+      if (repoNameLower === "lootflow") {
+        label = "Landing Page";
+      } else if (repoNameLower === "craftserver") {
+        label = "Live Demo";
+      } else {
+        if (project.siteLink.includes("github.io")) {
+          label = "Live Demo";
+        } else {
+          label = "Acessar Site";
+        }
+      }
+      actions.append(createButton({ href: project.siteLink, label: label, variant: "primary" }));
     }
 
     if (project.repoLink) {
