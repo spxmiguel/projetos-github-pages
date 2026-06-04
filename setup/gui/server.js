@@ -132,6 +132,7 @@ function updateConfig({ githubUsername, repoName, siteTitle, siteDescription, pr
   );
   content = content.replace(/profileImageUrl:\s*"[^"]*"/, `profileImageUrl: ${jsString(profileImageUrl)}`);
   content = content.replace(/encryptedToken:\s*"[^"]*"/, `encryptedToken: ""`);
+  content = content.replace(/encryptedGroqKey:\s*"[^"]*"/, `encryptedGroqKey: ""`);
 
   if (content.includes("ctaMode:")) {
     content = content.replace(/ctaMode:\s*"[^"]*"/, `ctaMode: ${jsString(safeCtaMode)}`);
