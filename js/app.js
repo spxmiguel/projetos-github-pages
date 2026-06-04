@@ -50,7 +50,7 @@
   const elements = {
     brandName: document.querySelector("#brandName"),
     brandHandle: document.querySelector("#brandHandle"),
-    forkCta: document.querySelector("#forkCta"),
+    forkCta: document.querySelector("#createYoursCta"),
     fineprintCta: document.querySelector("#fineprintCta"),
     setupModal: document.querySelector("#setupModal"),
     setupDetectedText: document.querySelector("#setupDetectedText"),
@@ -165,11 +165,13 @@
     elements.setupDownloadAgain.href = getDownloadUrl(os);
     elements.setupDownloadAgain.textContent = `Baixar ${setup.label} novamente`;
     elements.setupModal.hidden = false;
+    elements.setupModal.style.display = "flex";
     document.body.classList.add("modal-open");
   }
 
   function closeSetupModal() {
     elements.setupModal.hidden = true;
+    elements.setupModal.style.display = "none";
     document.body.classList.remove("modal-open");
   }
 
