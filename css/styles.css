@@ -1092,3 +1092,12 @@ textarea:focus, input[type="text"]:focus, input[type="url"]:focus, input[type="p
     gap: 4px;
   }
 }
+
+.ai-blog-spinner {
+  animation: ai-spin 1.2s linear infinite;
+}
+
+@keyframes ai-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

@@ -1061,7 +1061,7 @@
       updateLanguageFilter();
       updateStats();
       renderProjects();
-      renderBlogPosts();
+      loadAndGenerateBlog();
 
       if (result.cached && result.stale) {
         setStatus(`Mostrando cache salvo em ${formatCacheTime(result.savedAt)} porque a API do GitHub limitou as requisições. <a href="#" id="forceReloadBtn" style="color: var(--primary); text-decoration: underline; margin-left: 8px; font-weight: 600;">Atualizar agora</a>`, true);
@@ -1207,45 +1207,84 @@
   });
 
   // --- BLOG IA GENERATION ---
-  function renderBlogPosts() {
+  async function loadAndGenerateBlog() {
     if (!elements.blogGrid) return;
-    const posts = config.blogPosts || [];
-    if (posts.length === 0) return;
     
-    elements.blogGrid.innerHTML = "";
-    posts.forEach(post => {
-      const card = document.createElement("article");
-      card.className = "blog-card";
+    // Mostra o spinner de carregando enquanto a IA do Groq gera os posts
+    elements.blogGrid.innerHTML = `
+      <div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 40px 20px;">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ai-blog-spinner" style="margin-bottom: 12px; color: var(--primary); display: inline-block;">
+          <line x1="12" y1="2" x2="12" y2="6"></line>
+          <line x1="12" y1="18" x2="12" y2="22"></line>
+          <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
+          <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
+          <line x1="2" y1="12" x2="6" y2="12"></line>
+          <line x1="18" y1="12" x2="22" y2="12"></line>
+          <line x1="4.93" y1="19.78" x2="7.76" y2="16.93"></line>
+          <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
+        </svg>
+        <p style="font-size: 0.95rem; font-weight: 500;">Gerando posts de notícias com IA...</p>
+        <p style="font-size: 0.85rem; margin-top: 4px; color: var(--text-muted);">Analisando os commits mais recentes dos projetos...</p>
+      </div>
+    `;
+    
+    try {
+      const visitorToken = localStorage.getItem("github-visitor-token") || decryptedToken;
+      const commitsData = await fetchCommitsForBlog(visitorToken);
       
-      const category = document.createElement("span");
-      category.className = "blog-category";
-      category.textContent = post.category || "Atualização";
+      if (!commitsData || commitsData.length === 0) {
+        throw new Error("Nenhum commit público encontrado para alimentar o Blog de IA.");
+      }
       
-      const title = document.createElement("h3");
-      title.textContent = post.title;
+      const posts = await generateBlogPostsWithAI(DEFAULT_GROQ_KEY, commitsData);
       
-      const date = document.createElement("span");
-      date.style.fontSize = "0.75rem";
-      date.style.color = "var(--text-muted)";
-      date.style.display = "block";
-      date.style.marginBottom = "8px";
-      date.textContent = post.date || "";
+      if (!posts || posts.length === 0) {
+        throw new Error("O Groq não retornou posts válidos para esta conta.");
+      }
       
-      const content = document.createElement("div");
-      content.style.fontSize = "0.9rem";
-      content.style.lineHeight = "1.5";
-      content.style.color = "var(--text-muted)";
-      content.style.marginBottom = "12px";
-      content.innerHTML = post.content;
-      
-      const link = document.createElement("a");
-      link.className = "blog-link";
-      link.href = post.link || "#top";
-      link.textContent = post.project ? `Ver projeto: ${post.project} →` : "Ver detalhes →";
-      
-      card.append(category, title, date, content, link);
-      elements.blogGrid.append(card);
-    });
+      elements.blogGrid.innerHTML = "";
+      posts.forEach(post => {
+        const card = document.createElement("article");
+        card.className = "blog-card";
+        
+        const category = document.createElement("span");
+        category.className = "blog-category";
+        category.textContent = post.category || "Atualização";
+        
+        const title = document.createElement("h3");
+        title.textContent = post.title;
+        
+        const date = document.createElement("span");
+        date.style.fontSize = "0.75rem";
+        date.style.color = "var(--text-muted)";
+        date.style.display = "block";
+        date.style.marginBottom = "8px";
+        date.textContent = post.date || "";
+        
+        const content = document.createElement("div");
+        content.style.fontSize = "0.9rem";
+        content.style.lineHeight = "1.5";
+        content.style.color = "var(--text-muted)";
+        content.style.marginBottom = "12px";
+        content.innerHTML = post.content;
+        
+        const link = document.createElement("a");
+        link.className = "blog-link";
+        link.href = post.link || "#top";
+        link.textContent = post.project ? `Ver projeto: ${post.project} →` : "Ver detalhes →";
+        
+        card.append(category, title, date, content, link);
+        elements.blogGrid.append(card);
+      });
+    } catch (err) {
+      elements.blogGrid.innerHTML = `
+        <div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 40px 20px;">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ff5f56" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 12px; display: inline-block;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+          <p style="font-size: 0.95rem; font-weight: 500; color: #ff5f56;">Não foi possível carregar o blog de IA.</p>
+          <p style="font-size: 0.85rem; margin-top: 4px;">${err.message}</p>
+        </div>
+      `;
+    }
   }
 
   async function fetchCommitsForBlog(token) {
@@ -1330,58 +1369,7 @@ Formato do JSON de resposta:
   }
 
   // Admin listeners
-  if (elements.adminGenerateBlogBtn) {
-    elements.adminGenerateBlogBtn.addEventListener("click", async () => {
-      elements.adminGenerateBlogStatus.style.display = "block";
-      elements.adminGenerateBlogStatus.style.color = "var(--text-muted)";
-      elements.adminGenerateBlogStatus.textContent = "Buscando commits mais recentes dos seus repositórios...";
-      elements.adminGenerateBlogBtn.disabled = true;
-      
-      try {
-        if (!decryptedToken) {
-          throw new Error("Sua sessão administrativa expirou. Faça login novamente.");
-        }
-        
-        const commitsData = await fetchCommitsForBlog(decryptedToken);
-        
-        elements.adminGenerateBlogStatus.textContent = "Groq Llama 3 gerando posts de notícias...";
-        const posts = await generateBlogPostsWithAI(decryptedGroqKey || DEFAULT_GROQ_KEY, commitsData);
-        
-        if (!posts || posts.length === 0) {
-          throw new Error("Groq não retornou posts válidos.");
-        }
-        
-        elements.adminGenerateBlogStatus.textContent = "Posts gerados! Salvando no GitHub...";
-        
-        config.blogPosts = posts;
-        
-        // Criptografa chaves usando a senha atual e salva no GitHub
-        const encrypted = await encryptText(decryptedToken, adminPassword);
-        const encryptedGroqKey = await encryptText(decryptedGroqKey || DEFAULT_GROQ_KEY, adminPassword);
-        config.encryptedToken = encrypted;
-        config.encryptedGroqKey = encryptedGroqKey;
-        
-        await pushConfigToGithub(decryptedToken);
-        
-        try {
-          config.savedAt = Date.now();
-          localStorage.setItem("github-projects-config-override", JSON.stringify(config));
-        } catch (e) {}
-        
-        elements.adminGenerateBlogStatus.textContent = "Blog atualizado e salvo! Reiniciando a página...";
-        elements.adminGenerateBlogStatus.style.color = "var(--success)";
-        
-        setTimeout(() => {
-          clearCacheAndReload();
-        }, 2000);
-        
-      } catch (err) {
-        elements.adminGenerateBlogStatus.textContent = `Erro: ${err.message}`;
-        elements.adminGenerateBlogStatus.style.color = "#ff5f56";
-        elements.adminGenerateBlogBtn.disabled = false;
-      }
-    });
-  }
+
   elements.adminBtn.addEventListener("click", openAdminModal);
   elements.adminClose.addEventListener("click", closeAdminModal);
   elements.adminBackdrop.addEventListener("click", closeAdminModal);
