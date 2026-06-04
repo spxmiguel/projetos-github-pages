@@ -67,7 +67,13 @@ if not exist "js\config.js" (
   exit /b 1
 )
 
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$path='js/config.js'; $q=[char]34; $username=$env:GITHUB_USERNAME; $imageInput=$env:PROFILE_IMAGE_INPUT; $imageUrl=''; if ($imageInput) { if ($imageInput -match '^https?://') { $imageUrl=$imageInput } elseif (Test-Path -LiteralPath $imageInput -PathType Leaf) { New-Item -ItemType Directory -Force -Path 'assets/profile' | Out-Null; $ext=[IO.Path]::GetExtension($imageInput).TrimStart('.').ToLowerInvariant(); if ($ext -notin @('jpg','jpeg','png','webp','gif')) { $ext='png' }; $target='assets/profile/profile.' + $ext; Copy-Item -LiteralPath $imageInput -Destination $target -Force; $imageUrl=$target } else { Write-Host 'Foto nao encontrada. Vou continuar sem foto.' } }; $content=Get-Content $path -Raw; $content=$content -replace ('githubUsername:\s*' + $q + '[^' + $q + ']+' + $q), ('githubUsername: ' + $q + $username + $q); $content=$content -replace ('siteTitle:\s*' + $q + '[^' + $q + ']+' + $q), ('siteTitle: ' + $q + 'Projetos GitHub de ' + $username + $q); $content=$content -replace ('profileImageUrl:\s*' + $q + '[^' + $q + ']*' + $q), ('profileImageUrl: ' + $q + $imageUrl + $q); Set-Content -Path $path -Value $content -Encoding UTF8"
+for /f "tokens=*" %%r in ('gh repo view --json nameWithOwner --jq ".nameWithOwner" 2^>nul') do set REPO=%%r
+set REPO_NAME=projetos-github-pages
+if not "%REPO%"=="" (
+  for /f "tokens=1,2 delims=/" %%a in ("%REPO%") do set REPO_NAME=%%b
+)
+
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$path='js/config.js'; $q=[char]34; $username=$env:GITHUB_USERNAME; $repoName=$env:REPO_NAME; $imageInput=$env:PROFILE_IMAGE_INPUT; $imageUrl=''; if ($imageInput) { if ($imageInput -match '^https?://') { $imageUrl=$imageInput } elseif (Test-Path -LiteralPath $imageInput -PathType Leaf) { New-Item -ItemType Directory -Force -Path 'assets/profile' | Out-Null; $ext=[IO.Path]::GetExtension($imageInput).TrimStart('.').ToLowerInvariant(); if ($ext -notin @('jpg','jpeg','png','webp','gif')) { $ext='png' }; $target='assets/profile/profile.' + $ext; Copy-Item -LiteralPath $imageInput -Destination $target -Force; $imageUrl=$target } else { Write-Host 'Foto nao encontrada. Vou continuar sem foto.' } }; $content=Get-Content $path -Raw; $content=$content -replace ('githubUsername:\s*' + $q + '[^' + $q + ']+' + $q), ('githubUsername: ' + $q + $username + $q); $content=$content -replace ('repoName:\s*' + $q + '[^' + $q + ']*' + $q), ('repoName: ' + $q + $repoName + $q); $content=$content -replace ('siteTitle:\s*' + $q + '[^' + $q + ']+' + $q), ('siteTitle: ' + $q + 'Projetos GitHub de ' + $username + $q); $content=$content -replace ('profileImageUrl:\s*' + $q + '[^' + $q + ']*' + $q), ('profileImageUrl: ' + $q + $imageUrl + $q); $content=$content -replace ('encryptedToken:\s*' + $q + '[^' + $q + ']*' + $q), ('encryptedToken: ' + $q + $q); Set-Content -Path $path -Value $content -Encoding UTF8"
 if errorlevel 1 (
   echo Nao foi possivel atualizar js\config.js.
   pause
@@ -92,8 +98,6 @@ if errorlevel 1 (
   exit /b 1
 )
 
-for /f "tokens=*" %%r in ('gh repo view --json nameWithOwner --jq ".nameWithOwner"') do set REPO=%%r
-for /f "tokens=1,2 delims=/" %%a in ("%REPO%") do set REPO_NAME=%%b
 if not "%REPO%"=="" (
   gh api repos/%REPO%/pages >nul 2>nul
   if errorlevel 1 (
@@ -101,7 +105,7 @@ if not "%REPO%"=="" (
   )
   echo.
   echo Pronto. Seu site ficara disponivel em:
-  echo https://%GITHUB_USERNAME%.github.io/!REPO_NAME!/
+  echo https://%GITHUB_USERNAME%.github.io/%REPO_NAME%/
 )
 
 echo.

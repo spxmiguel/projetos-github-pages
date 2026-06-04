@@ -143,8 +143,9 @@
             <input type="password" id="adminLoginPassword" placeholder="Digite sua senha" required>
           </div>
           <div class="form-error" id="adminLoginError" style="color: #ff5f56; font-size: 0.85rem; display: none;"></div>
-          <div class="setup-actions">
-            <button class="button primary" type="submit">Desbloquear</button>
+          <div class="setup-actions" style="display: flex; gap: 12px; align-items: center; justify-content: space-between;">
+            <button class="button primary" type="submit" style="flex: 1;">Desbloquear</button>
+            <button class="button" id="adminResetConfigBtn" type="button" style="font-size: 0.8rem; padding: 10px 14px;">Reconfigurar</button>
           </div>
         </form>
 

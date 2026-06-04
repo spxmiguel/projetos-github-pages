@@ -106,6 +106,7 @@ function readConfig() {
 
   return {
     githubUsername: content.match(/githubUsername:\s*"([^"]*)"/)?.[1] || "",
+    repoName: content.match(/repoName:\s*"([^"]*)"/)?.[1] || "projetos-github-pages",
     siteTitle: content.match(/siteTitle:\s*"([^"]*)"/)?.[1] || "",
     siteDescription: content.match(/siteDescription:\s*"([^"]*)"/)?.[1] || "",
     profileImageUrl: content.match(/profileImageUrl:\s*"([^"]*)"/)?.[1] || "",
@@ -117,18 +118,20 @@ function jsString(value) {
   return JSON.stringify(value || "");
 }
 
-function updateConfig({ githubUsername, siteTitle, siteDescription, profileImageUrl, ctaMode }) {
+function updateConfig({ githubUsername, repoName, siteTitle, siteDescription, profileImageUrl, ctaMode }) {
   const configPath = path.join(root, "js/config.js");
   let content = fs.readFileSync(configPath, "utf8");
   const safeCtaMode = ["top", "fineprint", "hidden"].includes(ctaMode) ? ctaMode : "top";
 
   content = content.replace(/githubUsername:\s*"[^"]*"/, `githubUsername: ${jsString(githubUsername)}`);
+  content = content.replace(/repoName:\s*"[^"]*"/, `repoName: ${jsString(repoName)}`);
   content = content.replace(/siteTitle:\s*"[^"]*"/, `siteTitle: ${jsString(siteTitle)}`);
   content = content.replace(
     /siteDescription:\s*(?:"[^"]*"|`[^`]*`)/,
     `siteDescription: ${jsString(siteDescription)}`
   );
   content = content.replace(/profileImageUrl:\s*"[^"]*"/, `profileImageUrl: ${jsString(profileImageUrl)}`);
+  content = content.replace(/encryptedToken:\s*"[^"]*"/, `encryptedToken: ""`);
 
   if (content.includes("ctaMode:")) {
     content = content.replace(/ctaMode:\s*"[^"]*"/, `ctaMode: ${jsString(safeCtaMode)}`);
@@ -241,6 +244,7 @@ function setup(payload) {
 
   updateConfig({
     githubUsername: username,
+    repoName: repoName,
     siteTitle: title,
     siteDescription: description,
     profileImageUrl,

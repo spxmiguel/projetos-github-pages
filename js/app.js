@@ -108,6 +108,7 @@
     adminEditSuccess: document.querySelector("#adminEditSuccess"),
     adminSaveBtn: document.querySelector("#adminSaveBtn"),
     adminLogoutBtn: document.querySelector("#adminLogoutBtn"),
+    adminResetConfigBtn: document.querySelector("#adminResetConfigBtn"),
   };
 
   function getPreferredTheme() {
@@ -797,6 +798,11 @@
   elements.adminSetupForm.addEventListener("submit", handleSetupSubmit);
   elements.adminEditForm.addEventListener("submit", handleEditSubmit);
   elements.adminLogoutBtn.addEventListener("click", handleLogout);
+  elements.adminResetConfigBtn.addEventListener("click", () => {
+    elements.adminLoginForm.style.display = "none";
+    elements.adminSetupForm.style.display = "flex";
+    document.querySelector("#adminModalTitle").textContent = "Configurar Painel Admin (Reset)";
+  });
 
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {

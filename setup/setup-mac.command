@@ -67,6 +67,13 @@ if [ ! -f "js/config.js" ]; then
   exit 1
 fi
 
+REPO="$(gh repo view --json nameWithOwner --jq '.nameWithOwner' 2>/dev/null || true)"
+REPO_NAME="projetos-github-pages"
+if [ -n "$REPO" ]; then
+  REPO_NAME="${REPO#*/}"
+fi
+
+export REPO_NAME
 export GITHUB_USERNAME
 PROFILE_IMAGE_URL=""
 
@@ -101,8 +108,10 @@ fi
 
 export PROFILE_IMAGE_URL
 perl -0pi -e 's/githubUsername:\s*"[^"]+"/githubUsername: "$ENV{GITHUB_USERNAME}"/' js/config.js
+perl -0pi -e 's/repoName:\s*"[^"]*"/repoName: "$ENV{REPO_NAME}"/' js/config.js
 perl -0pi -e 's/siteTitle:\s*"[^"]+"/siteTitle: "Projetos GitHub de $ENV{GITHUB_USERNAME}"/' js/config.js
 perl -0pi -e 's/profileImageUrl:\s*"[^"]*"/profileImageUrl: "$ENV{PROFILE_IMAGE_URL}"/' js/config.js
+perl -0pi -e 's/encryptedToken:\s*"[^"]*"/encryptedToken: ""/' js/config.js
 
 if [ $? -ne 0 ]; then
   echo "Nao foi possivel atualizar js/config.js."
@@ -124,9 +133,6 @@ if ! git push; then
   read -r -p "Pressione Enter para sair..."
   exit 1
 fi
-
-REPO="$(gh repo view --json nameWithOwner --jq '.nameWithOwner' 2>/dev/null || true)"
-REPO_NAME="${REPO#*/}"
 
 if [ -n "$REPO" ]; then
   if ! gh api "repos/$REPO/pages" >/dev/null 2>&1; then
