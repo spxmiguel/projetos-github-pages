@@ -1,5 +1,6 @@
 window.PORTFOLIO_CONFIG = {
   githubUsername: "spxmiguel",
+  repoName: "projetos-github-pages",
   siteTitle: "Projetos GitHub",
   siteDescription:
     "Uma vitrine estática que sincroniza automaticamente com repositórios, GitHub Pages, README e releases oficiais.",
@@ -9,4 +10,6 @@ window.PORTFOLIO_CONFIG = {
   includeForks: false,
   includeArchived: true,
   sortBy: "updated",
+  encryptedToken: "",
 };
+

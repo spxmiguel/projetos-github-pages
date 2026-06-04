@@ -6,7 +6,7 @@
     <meta name="description" content="Vitrine estática de projetos GitHub com releases e links dinâmicos.">
     <title>Projetos GitHub</title>
     <link rel="preconnect" href="https://api.github.com">
-    <link rel="stylesheet" href="css/styles.css?v=20260602-5">
+    <link rel="stylesheet" href="css/styles.css?v=20260604-v4">
   </head>
   <body>
     <header class="site-header">
@@ -19,6 +19,9 @@
           </span>
         </a>
         <div class="nav-actions">
+          <button class="theme-toggle" id="adminBtn" type="button" aria-label="Painel Admin" title="Painel Admin">
+            <span id="adminBtnIcon" aria-hidden="true">🔒</span>
+          </button>
           <button class="theme-toggle" id="themeToggle" type="button" aria-label="Alternar tema" title="Alternar tema">
             <span id="themeIcon" aria-hidden="true">◐</span>
           </button>
@@ -125,13 +128,149 @@
         </div>
       </div>
     </section>
+
+    <section class="setup-modal" id="adminModal" aria-labelledby="adminModalTitle" aria-modal="true" role="dialog" hidden>
+      <div class="setup-backdrop" id="adminBackdrop"></div>
+      <div class="setup-dialog">
+        <button class="setup-close" type="button" aria-label="Fechar" id="adminClose">×</button>
+        <p class="eyebrow" id="adminEyebrow">Painel de Controle</p>
+        <h2 id="adminModalTitle">Painel Admin</h2>
+        
+        <!-- View 1: Login Form -->
+        <form id="adminLoginForm" autocomplete="off" style="display: none; flex-direction: column; gap: 16px;">
+          <div class="form-group">
+            <label for="adminLoginPassword">Senha de Acesso</label>
+            <input type="password" id="adminLoginPassword" placeholder="Digite sua senha" required>
+          </div>
+          <div class="form-error" id="adminLoginError" style="color: #ff5f56; font-size: 0.85rem; display: none;"></div>
+          <div class="setup-actions">
+            <button class="button primary" type="submit">Desbloquear</button>
+          </div>
+        </form>
+
+        <!-- View 2: Setup Form -->
+        <form id="adminSetupForm" autocomplete="off" style="display: none; flex-direction: column; gap: 16px;">
+          <p style="color: var(--text-muted); font-size: 0.9rem;">
+            Configure seu painel. Defina uma senha e insira seu GitHub Personal Access Token (PAT) com escopo <strong>repo</strong>.
+          </p>
+          <div class="form-group">
+            <label for="adminSetupToken">GitHub Personal Access Token (PAT)</label>
+            <input type="password" id="adminSetupToken" placeholder="github_pat_..." required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="adminSetupPassword">Senha do Painel</label>
+              <input type="password" id="adminSetupPassword" placeholder="Crie uma senha" required autocomplete="new-password">
+            </div>
+            <div class="form-group">
+              <label for="adminSetupPasswordConfirm">Confirmar Senha</label>
+              <input type="password" id="adminSetupPasswordConfirm" placeholder="Confirme a senha" required autocomplete="new-password">
+            </div>
+          </div>
+          <div class="form-error" id="adminSetupError" style="color: #ff5f56; font-size: 0.85rem; display: none;"></div>
+          <div class="setup-actions">
+            <button class="button primary" type="submit">Salvar e Inicializar</button>
+          </div>
+        </form>
+
+        <!-- View 3: Edit Form -->
+        <form id="adminEditForm" autocomplete="off" style="display: none; flex-direction: column; gap: 16px;">
+          <div style="max-height: 50vh; overflow-y: auto; padding-right: 8px; display: flex; flex-direction: column; gap: 16px;">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="adminGithubUsername">GitHub Username</label>
+                <input type="text" id="adminGithubUsername" required>
+              </div>
+              <div class="form-group">
+                <label for="adminRepoName">Repository Name</label>
+                <input type="text" id="adminRepoName" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="adminSiteTitle">Título do Site</label>
+              <input type="text" id="adminSiteTitle" required>
+            </div>
+
+            <div class="form-group">
+              <label for="adminSiteDescription">Descrição do Site</label>
+              <textarea id="adminSiteDescription" rows="3" required></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="adminProfileImageUrl">URL da Foto de Perfil (Opcional)</label>
+              <input type="url" id="adminProfileImageUrl" placeholder="Deixe em branco para usar a padrão">
+            </div>
+
+            <div class="form-group">
+              <label for="adminForkUrl">ZIP de Setup / Download URL</label>
+              <input type="url" id="adminForkUrl">
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="adminCtaMode">Posição do Botão "Create Yours"</label>
+                <select id="adminCtaMode">
+                  <option value="top">Superior Direito (Flutuante)</option>
+                  <option value="fineprint">Rodapé (Texto)</option>
+                  <option value="hidden">Oculto</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="adminSortBy">Ordenar Projetos por</label>
+                <select id="adminSortBy">
+                  <option value="updated">Última atualização</option>
+                  <option value="stars">Estrelas</option>
+                  <option value="name">Nome (A-Z)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-checkboxes" style="display: flex; gap: 20px;">
+              <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer; text-transform: none; font-size: 0.85rem;">
+                <input type="checkbox" id="adminIncludeForks" style="width: auto;"> Incluir Forks
+              </label>
+              <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer; text-transform: none; font-size: 0.85rem;">
+                <input type="checkbox" id="adminIncludeArchived" style="width: auto;"> Incluir Arquivados
+              </label>
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid var(--border); margin: 8px 0;">
+
+            <div class="form-group">
+              <label for="adminChangeToken">Atualizar GitHub PAT (Opcional)</label>
+              <input type="password" id="adminChangeToken" placeholder="Preencha apenas se quiser trocar o token">
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="adminChangePassword">Nova Senha (Opcional)</label>
+                <input type="password" id="adminChangePassword" placeholder="Nova senha">
+              </div>
+              <div class="form-group">
+                <label for="adminChangePasswordConfirm">Confirmar Nova Senha (Opcional)</label>
+                <input type="password" id="adminChangePasswordConfirm" placeholder="Confirme a nova senha">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-error" id="adminEditError" style="color: #ff5f56; font-size: 0.85rem; display: none;"></div>
+          <div class="form-success" id="adminEditSuccess" style="color: var(--success); font-size: 0.85rem; display: none;"></div>
+          
+          <div class="setup-actions" style="margin-top: 16px;">
+            <button class="button primary" type="submit" id="adminSaveBtn">Salvar Alterações</button>
+            <button class="button" type="button" id="adminLogoutBtn">Sair</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
     <a class="fork-cta" id="forkCta" href="https://github.com/spxmiguel/projetos-github-pages/releases/latest/download/projetos-github-pages-universal.zip" target="_blank" rel="noreferrer">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 4px;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
       <span>Create Yours</span>
     </a>
 
-    <script src="js/config.js?v=20260604-v3"></script>
-    <script src="js/github.js?v=20260604-v3"></script>
-    <script src="js/app.js?v=20260604-v3"></script>
+    <script src="js/config.js?v=20260604-v4"></script>
+    <script src="js/github.js?v=20260604-v4"></script>
+    <script src="js/app.js?v=20260604-v4"></script>
   </body>
 </html>

@@ -47,6 +47,9 @@
     theme: localStorage.getItem("github-projects-theme") || "system",
   };
 
+  let decryptedToken = null;
+  let adminPassword = null;
+
   const elements = {
     brandName: document.querySelector("#brandName"),
     brandHandle: document.querySelector("#brandHandle"),
@@ -72,6 +75,39 @@
     statusMessage: document.querySelector("#statusMessage"),
     projectGrid: document.querySelector("#projectGrid"),
     template: document.querySelector("#projectCardTemplate"),
+    
+    // Admin panel elements
+    adminBtn: document.querySelector("#adminBtn"),
+    adminBtnIcon: document.querySelector("#adminBtnIcon"),
+    adminModal: document.querySelector("#adminModal"),
+    adminLoginForm: document.querySelector("#adminLoginForm"),
+    adminSetupForm: document.querySelector("#adminSetupForm"),
+    adminEditForm: document.querySelector("#adminEditForm"),
+    adminClose: document.querySelector("#adminClose"),
+    adminBackdrop: document.querySelector("#adminBackdrop"),
+    adminLoginPassword: document.querySelector("#adminLoginPassword"),
+    adminLoginError: document.querySelector("#adminLoginError"),
+    adminSetupToken: document.querySelector("#adminSetupToken"),
+    adminSetupPassword: document.querySelector("#adminSetupPassword"),
+    adminSetupPasswordConfirm: document.querySelector("#adminSetupPasswordConfirm"),
+    adminSetupError: document.querySelector("#adminSetupError"),
+    adminGithubUsername: document.querySelector("#adminGithubUsername"),
+    adminRepoName: document.querySelector("#adminRepoName"),
+    adminSiteTitle: document.querySelector("#adminSiteTitle"),
+    adminSiteDescription: document.querySelector("#adminSiteDescription"),
+    adminProfileImageUrl: document.querySelector("#adminProfileImageUrl"),
+    adminForkUrl: document.querySelector("#adminForkUrl"),
+    adminCtaMode: document.querySelector("#adminCtaMode"),
+    adminSortBy: document.querySelector("#adminSortBy"),
+    adminIncludeForks: document.querySelector("#adminIncludeForks"),
+    adminIncludeArchived: document.querySelector("#adminIncludeArchived"),
+    adminChangeToken: document.querySelector("#adminChangeToken"),
+    adminChangePassword: document.querySelector("#adminChangePassword"),
+    adminChangePasswordConfirm: document.querySelector("#adminChangePasswordConfirm"),
+    adminEditError: document.querySelector("#adminEditError"),
+    adminEditSuccess: document.querySelector("#adminEditSuccess"),
+    adminSaveBtn: document.querySelector("#adminSaveBtn"),
+    adminLogoutBtn: document.querySelector("#adminLogoutBtn"),
   };
 
   function getPreferredTheme() {
@@ -172,6 +208,392 @@
   function closeSetupModal() {
     elements.setupModal.hidden = true;
     document.body.classList.remove("modal-open");
+  }
+
+  // --- CRYPTO HELPERS (WEB CRYPTO API) ---
+  async function deriveKey(password, salt) {
+    const encoder = new TextEncoder();
+    const baseKey = await crypto.subtle.importKey(
+      "raw",
+      encoder.encode(password),
+      { name: "PBKDF2" },
+      false,
+      ["deriveBits", "deriveKey"]
+    );
+    return crypto.subtle.deriveKey(
+      {
+        name: "PBKDF2",
+        salt: salt,
+        iterations: 100000,
+        hash: "SHA-256"
+      },
+      baseKey,
+      { name: "AES-GCM", length: 256 },
+      false,
+      ["encrypt", "decrypt"]
+    );
+  }
+
+  async function encryptText(text, password) {
+    const encoder = new TextEncoder();
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const key = await deriveKey(password, salt);
+    const encrypted = await crypto.subtle.encrypt(
+      { name: "AES-GCM", iv: iv },
+      key,
+      encoder.encode(text)
+    );
+    
+    const saltHex = Array.from(salt).map(b => b.toString(16).padStart(2, "0")).join("");
+    const ivHex = Array.from(iv).map(b => b.toString(16).padStart(2, "0")).join("");
+    const encryptedHex = Array.from(new Uint8Array(encrypted)).map(b => b.toString(16).padStart(2, "0")).join("");
+    return `${saltHex}.${ivHex}.${encryptedHex}`;
+  }
+
+  async function decryptText(encryptedString, password) {
+    try {
+      const parts = encryptedString.split(".");
+      if (parts.length !== 3) throw new Error("Formato criptografado inválido.");
+      const [saltHex, ivHex, encryptedHex] = parts;
+      
+      const salt = new Uint8Array(saltHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+      const iv = new Uint8Array(ivHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+      const encrypted = new Uint8Array(encryptedHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+      
+      const key = await deriveKey(password, salt);
+      const decrypted = await crypto.subtle.decrypt(
+        { name: "AES-GCM", iv: iv },
+        key,
+        encrypted
+      );
+      const decoder = new TextDecoder();
+      return decoder.decode(decrypted);
+    } catch (e) {
+      throw new Error("Senha incorreta.");
+    }
+  }
+
+  // --- GITHUB REPO VALIDATION & PUSH ---
+  async function checkTokenValidity(token, username, repo) {
+    const url = `https://api.github.com/repos/${username}/${repo}/contents/js/config.js`;
+    try {
+      const response = await fetch(url, {
+        headers: {
+          "Accept": "application/vnd.github+json",
+          "Authorization": `token ${token}`
+        }
+      });
+      return response.ok;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function generateConfigJsContent() {
+    return `window.PORTFOLIO_CONFIG = {
+  githubUsername: ${JSON.stringify(config.githubUsername)},
+  repoName: ${JSON.stringify(config.repoName)},
+  siteTitle: ${JSON.stringify(config.siteTitle)},
+  siteDescription: ${JSON.stringify(config.siteDescription)},
+  profileImageUrl: ${JSON.stringify(config.profileImageUrl)},
+  forkUrl: ${JSON.stringify(config.forkUrl)},
+  ctaMode: ${JSON.stringify(config.ctaMode)},
+  includeForks: ${config.includeForks},
+  includeArchived: ${config.includeArchived},
+  sortBy: ${JSON.stringify(config.sortBy)},
+  encryptedToken: ${JSON.stringify(config.encryptedToken)},
+};
+`;
+  }
+
+  async function pushConfigToGithub(token) {
+    const username = config.githubUsername;
+    const repo = config.repoName;
+    const path = "js/config.js";
+    const url = `https://api.github.com/repos/${username}/${repo}/contents/${path}`;
+    
+    let sha = null;
+    try {
+      const getRes = await fetch(url, {
+        headers: {
+          "Accept": "application/vnd.github+json",
+          "Authorization": `token ${token}`
+        }
+      });
+      if (getRes.ok) {
+        const fileInfo = await getRes.json();
+        sha = fileInfo.sha;
+      }
+    } catch (e) {
+      // File doesn't exist yet or network error
+    }
+    
+    const newContent = generateConfigJsContent();
+    
+    // Unicode-safe base64 encoding
+    const encoder = new TextEncoder();
+    const bytes = encoder.encode(newContent);
+    let binary = "";
+    for (let i = 0; i < bytes.byteLength; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    const base64Content = btoa(binary);
+    
+    const body = {
+      message: "Update site configuration via Admin Panel",
+      content: base64Content
+    };
+    if (sha) {
+      body.sha = sha;
+    }
+    
+    const putRes = await fetch(url, {
+      method: "PUT",
+      headers: {
+        "Accept": "application/vnd.github+json",
+        "Authorization": `token ${token}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(body)
+    });
+    
+    if (!putRes.ok) {
+      const errData = await putRes.json().catch(() => ({}));
+      throw new Error(errData.message || `Erro do GitHub API: ${putRes.status}`);
+    }
+  }
+
+  // --- ADMIN UI FLOWS ---
+  function openAdminModal() {
+    elements.adminModal.hidden = false;
+    document.body.classList.add("modal-open");
+    resetAdminModalViews();
+  }
+
+  function closeAdminModal() {
+    elements.adminModal.hidden = true;
+    document.body.classList.remove("modal-open");
+  }
+
+  function resetAdminModalViews() {
+    elements.adminLoginForm.style.display = "none";
+    elements.adminSetupForm.style.display = "none";
+    elements.adminEditForm.style.display = "none";
+    elements.adminLoginError.style.display = "none";
+    elements.adminSetupError.style.display = "none";
+    elements.adminEditError.style.display = "none";
+    elements.adminEditSuccess.style.display = "none";
+    
+    elements.adminLoginForm.reset();
+    elements.adminSetupForm.reset();
+    elements.adminEditForm.reset();
+    
+    if (!decryptedToken) {
+      if (!config.encryptedToken) {
+        elements.adminSetupForm.style.display = "flex";
+        document.querySelector("#adminModalTitle").textContent = "Configurar Painel Admin";
+      } else {
+        elements.adminLoginForm.style.display = "flex";
+        document.querySelector("#adminModalTitle").textContent = "Desbloquear Painel";
+      }
+    } else {
+      showEditView();
+    }
+  }
+
+  function showEditView() {
+    elements.adminLoginForm.style.display = "none";
+    elements.adminSetupForm.style.display = "none";
+    elements.adminEditForm.style.display = "flex";
+    document.querySelector("#adminModalTitle").textContent = "Editar Informações do Site";
+    
+    elements.adminGithubUsername.value = config.githubUsername || "";
+    elements.adminRepoName.value = config.repoName || "projetos-github-pages";
+    elements.adminSiteTitle.value = config.siteTitle || "";
+    elements.adminSiteDescription.value = config.siteDescription || "";
+    elements.adminProfileImageUrl.value = config.profileImageUrl || "";
+    elements.adminForkUrl.value = config.forkUrl || "";
+    elements.adminCtaMode.value = config.ctaMode || "top";
+    elements.adminSortBy.value = config.sortBy || "updated";
+    elements.adminIncludeForks.checked = !!config.includeForks;
+    elements.adminIncludeArchived.checked = !!config.includeArchived;
+  }
+
+  function clearCacheAndReload() {
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith("github-projects-cache")) {
+        localStorage.removeItem(key);
+      }
+    }
+    const cleanUrl = window.location.origin + window.location.pathname + "?v=" + Date.now();
+    window.location.href = cleanUrl;
+  }
+
+  async function handleLoginSubmit(event) {
+    event.preventDefault();
+    elements.adminLoginError.style.display = "none";
+    const password = elements.adminLoginPassword.value;
+    
+    const loginBtn = elements.adminLoginForm.querySelector("button[type='submit']");
+    const originalText = loginBtn.textContent;
+    loginBtn.textContent = "Desbloqueando...";
+    loginBtn.disabled = true;
+    
+    try {
+      const decrypted = await decryptText(config.encryptedToken, password);
+      const isValid = await checkTokenValidity(decrypted, config.githubUsername, config.repoName);
+      
+      if (!isValid) {
+        throw new Error("Token descriptografado é inválido ou sem acesso ao repositório.");
+      }
+      
+      decryptedToken = decrypted;
+      adminPassword = password;
+      elements.adminBtnIcon.textContent = "🔓";
+      showEditView();
+    } catch (err) {
+      elements.adminLoginError.textContent = err.message || "Senha incorreta ou token inválido.";
+      elements.adminLoginError.style.display = "block";
+    } finally {
+      loginBtn.textContent = originalText;
+      loginBtn.disabled = false;
+    }
+  }
+
+  async function handleSetupSubmit(event) {
+    event.preventDefault();
+    elements.adminSetupError.style.display = "none";
+    
+    const token = elements.adminSetupToken.value.trim();
+    const password = elements.adminSetupPassword.value;
+    const confirm = elements.adminSetupPasswordConfirm.value;
+    
+    if (password !== confirm) {
+      elements.adminSetupError.textContent = "As senhas não coincidem.";
+      elements.adminSetupError.style.display = "block";
+      return;
+    }
+    
+    const submitBtn = elements.adminSetupForm.querySelector("button[type='submit']");
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = "Validando e Configurando...";
+    submitBtn.disabled = true;
+    
+    try {
+      const isValid = await checkTokenValidity(token, config.githubUsername, config.repoName);
+      if (!isValid) {
+        throw new Error("Token inválido ou sem acesso ao repositório configurado.");
+      }
+      
+      const encrypted = await encryptText(token, password);
+      
+      config.encryptedToken = encrypted;
+      
+      await pushConfigToGithub(token);
+      
+      decryptedToken = token;
+      adminPassword = password;
+      elements.adminBtnIcon.textContent = "🔓";
+      
+      elements.adminSetupError.style.display = "none";
+      alert("Configurado com sucesso! O site será recarregado em instantes.");
+      clearCacheAndReload();
+    } catch (err) {
+      elements.adminSetupError.textContent = err.message || "Erro ao configurar.";
+      elements.adminSetupError.style.display = "block";
+    } finally {
+      submitBtn.textContent = originalText;
+      submitBtn.disabled = false;
+    }
+  }
+
+  async function handleEditSubmit(event) {
+    event.preventDefault();
+    elements.adminEditError.style.display = "none";
+    elements.adminEditSuccess.style.display = "none";
+    
+    const newUsername = elements.adminGithubUsername.value.trim();
+    const newRepo = elements.adminRepoName.value.trim();
+    const newTitle = elements.adminSiteTitle.value.trim();
+    const newDesc = elements.adminSiteDescription.value.trim();
+    const newProfileImg = elements.adminProfileImageUrl.value.trim();
+    const newForkUrl = elements.adminForkUrl.value.trim();
+    const newCtaMode = elements.adminCtaMode.value;
+    const newSortBy = elements.adminSortBy.value;
+    const newIncludeForks = elements.adminIncludeForks.checked;
+    const newIncludeArchived = elements.adminIncludeArchived.checked;
+    
+    const changeToken = elements.adminChangeToken.value.trim();
+    const changePass = elements.adminChangePassword.value;
+    const changePassConfirm = elements.adminChangePasswordConfirm.value;
+    
+    let targetToken = decryptedToken;
+    let targetPassword = adminPassword;
+    
+    if (changePass || changePassConfirm) {
+      if (changePass !== changePassConfirm) {
+        elements.adminEditError.textContent = "As novas senhas não coincidem.";
+        elements.adminEditError.style.display = "block";
+        return;
+      }
+      targetPassword = changePass;
+    }
+    
+    if (changeToken) {
+      targetToken = changeToken;
+    }
+    
+    elements.adminSaveBtn.textContent = "Salvando no GitHub...";
+    elements.adminSaveBtn.disabled = true;
+    
+    try {
+      const isValid = await checkTokenValidity(targetToken, newUsername, newRepo);
+      if (!isValid) {
+        throw new Error("Token inválido ou repositório não encontrado com as novas configurações.");
+      }
+      
+      config.githubUsername = newUsername;
+      config.repoName = newRepo;
+      config.siteTitle = newTitle;
+      config.siteDescription = newDesc;
+      config.profileImageUrl = newProfileImg;
+      config.forkUrl = newForkUrl;
+      config.ctaMode = newCtaMode;
+      config.sortBy = newSortBy;
+      config.includeForks = newIncludeForks;
+      config.includeArchived = newIncludeArchived;
+      
+      const encrypted = await encryptText(targetToken, targetPassword);
+      config.encryptedToken = encrypted;
+      
+      await pushConfigToGithub(targetToken);
+      
+      decryptedToken = targetToken;
+      adminPassword = targetPassword;
+      
+      elements.adminEditSuccess.textContent = "Configurações salvas e publicadas! Reiniciando a página...";
+      elements.adminEditSuccess.style.display = "block";
+      
+      setTimeout(() => {
+        clearCacheAndReload();
+      }, 2000);
+      
+    } catch (err) {
+      elements.adminEditError.textContent = err.message || "Erro ao salvar alterações.";
+      elements.adminEditError.style.display = "block";
+    } finally {
+      elements.adminSaveBtn.textContent = "Salvar Alterações";
+      elements.adminSaveBtn.disabled = false;
+    }
+  }
+
+  function handleLogout() {
+    decryptedToken = null;
+    adminPassword = null;
+    elements.adminBtnIcon.textContent = "🔒";
+    closeAdminModal();
   }
 
   function formatCacheTime(dateValue) {
@@ -367,9 +789,23 @@
     element.addEventListener("click", closeSetupModal);
   });
 
+  // Admin listeners
+  elements.adminBtn.addEventListener("click", openAdminModal);
+  elements.adminClose.addEventListener("click", closeAdminModal);
+  elements.adminBackdrop.addEventListener("click", closeAdminModal);
+  elements.adminLoginForm.addEventListener("submit", handleLoginSubmit);
+  elements.adminSetupForm.addEventListener("submit", handleSetupSubmit);
+  elements.adminEditForm.addEventListener("submit", handleEditSubmit);
+  elements.adminLogoutBtn.addEventListener("click", handleLogout);
+
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && !elements.setupModal.hidden) {
-      closeSetupModal();
+    if (event.key === "Escape") {
+      if (!elements.setupModal.hidden) {
+        closeSetupModal();
+      }
+      if (!elements.adminModal.hidden) {
+        closeAdminModal();
+      }
     }
   });
 
