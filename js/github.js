@@ -120,49 +120,18 @@
   }
 
   function findSiteLink(repo) {
-    // Only use the homepage if it appears to be a GitHub Pages URL.
-    // This avoids arbitrary links (e.g., a README link) being used as the project site.
-    if (repo.homepage && /^https?:\/\//i.test(repo.homepage) && repo.homepage.includes('.github.io')) {
+    // 1. Usar a homepage do GitHub se existir (e for um link válido http/https)
+    if (repo.homepage && /^https?:\/\//i.test(repo.homepage)) {
       return repo.homepage;
     }
 
-    // If the repository has GitHub Pages enabled, construct the default URL.
+    // 2. Senão, tentar o GitHub Pages padrão se ele estiver ativado no repositório
     if (repo.has_pages) {
       return `https://${repo.owner.login}.github.io/${repo.name}/`;
     }
 
-    // Otherwise, no explicit site link.
+    // 3. Caso contrário, nenhum site válido
     return null;
-  }
-
-  function decodeBase64(content) {
-    const normalized = content.replace(/\n/g, "");
-    const binary = atob(normalized);
-    const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
-    return new TextDecoder().decode(bytes);
-  }
-
-  function findReadmeSiteLink(readmeText, repo) {
-    const links = [...readmeText.matchAll(/(?:\[[^\]]+\]\((https?:\/\/[^)\s]+)\))|(https?:\/\/[^\s)<>"']+)/gi)]
-      .map((match) => match[1] || match[2])
-      .map((url) => url.replace(/[.,;:!?]+$/, ""))
-      .filter(Boolean);
-
-    return (
-      links.find((url) => url.includes(`${repo.owner.login}.github.io`)) ||
-      links.find((url) => !url.includes("github.com") && !url.match(/\.(png|jpe?g|gif|svg|webp)$/i)) ||
-      null
-    );
-  }
-
-  async function fetchReadmeSiteLink(repo) {
-    try {
-      const readme = await requestJson(`${API_BASE}/repos/${repo.full_name}/readme`);
-      const readmeText = decodeBase64(readme.content || "");
-      return findReadmeSiteLink(readmeText, repo);
-    } catch (error) {
-      return null;
-    }
   }
 
   async function fetchRepoReleases(repo) {
@@ -206,17 +175,14 @@
 
     const enrichedRepos = await Promise.all(
       visibleRepos.map(async (repo) => {
-        const directSiteLink = findSiteLink(repo);
-        const readmeSiteLink = directSiteLink ? null : await fetchReadmeSiteLink(repo);
+        const siteLink = findSiteLink(repo);
 
         try {
           const releaseData = await fetchRepoReleases(repo);
 
           return {
             ...repo,
-            // Prefer explicit homepage or GitHub Pages detected via API
-            // If none, construct default GitHub Pages URL for the repo
-            siteLink: directSiteLink || `https://${config.githubUsername}.github.io/${repo.name}/`,
+            siteLink,
             readmeLink: findReadmeLink(repo),
             repoLink: repo.html_url,
             releases: releaseData.releases,
@@ -226,7 +192,7 @@
         } catch (error) {
           return {
             ...repo,
-            siteLink: directSiteLink || readmeSiteLink,
+            siteLink,
             readmeLink: findReadmeLink(repo),
             releases: [],
             downloads: [],
