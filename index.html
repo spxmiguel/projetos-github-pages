@@ -26,7 +26,6 @@
         
         <div class="nav-menu">
           <a href="#top" class="nav-menu-link active">Projects</a>
-          <a href="#about" class="nav-menu-link">About</a>
           <a href="#blog" class="nav-menu-link">Blog</a>
         </div>
 
@@ -112,46 +111,18 @@
 
       <section class="project-grid" id="projectGrid" aria-label="Lista de projetos"></section>
 
-      <!-- About Section -->
-      <section class="about-section" id="about" aria-label="Sobre mim">
-        <div class="section-header">
-          <p class="eyebrow">Sobre mim</p>
-          <h2>Minha Trajetória</h2>
-        </div>
-        <div class="about-card">
-          <div class="about-bio">
-            <p>Desenvolvedor apaixonado por tecnologia, especializado em criar soluções elegantes para a web. Focado em automação, performance e design minimalista de alta qualidade.</p>
-            <div class="about-skills">
-              <span>JavaScript</span>
-              <span>Node.js</span>
-              <span>React</span>
-              <span>Python</span>
-              <span>Docker</span>
-              <span>Git</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
       <!-- Blog Section -->
       <section class="blog-section" id="blog" aria-label="Blog">
         <div class="section-header">
-          <p class="eyebrow">Artigos recentes</p>
-          <h2>Últimas do Blog</h2>
+          <p class="eyebrow">Notícias Recentes</p>
+          <h2>Blog do Desenvolvedor</h2>
         </div>
-        <div class="blog-grid">
-          <article class="blog-card">
-            <span class="blog-category">Tecnologia</span>
-            <h3>Como criei este Portfolio Dinâmico</h3>
-            <p>Descubra os bastidores do desenvolvimento desta vitrine estática e como automatizar a exibição de repositórios.</p>
-            <a href="https://github.com/spxmiguel/projetos-github-pages" target="_blank" rel="noreferrer" class="blog-link">Ler artigo →</a>
-          </article>
-          <article class="blog-card">
-            <span class="blog-category">Dicas</span>
-            <h3>Otimização de Performance no GitHub Pages</h3>
-            <p>Estratégias de cache local no navegador e consumo eficiente da API do GitHub para carregar dados instantaneamente.</p>
-            <a href="https://github.com/spxmiguel/projetos-github-pages" target="_blank" rel="noreferrer" class="blog-link">Ler artigo →</a>
-          </article>
+        <div class="blog-grid" id="blogGrid">
+          <div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 40px 20px;">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 12px; opacity: 0.5; color: var(--primary); display: inline-block;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><path d="M16 8h2"></path><path d="M16 12h2"></path><path d="M16 16h2"></path><path d="M6 8h6v8H6z"></path></svg>
+            <p style="font-size: 0.95rem; font-weight: 500;">Nenhuma notícia gerada ainda.</p>
+            <p style="font-size: 0.85rem; margin-top: 4px;">Acesse o Painel Admin para gerar notícias automáticas com IA a partir dos seus commits!</p>
+          </div>
         </div>
       </section>
 
@@ -228,6 +199,10 @@
           <div class="form-group">
             <label for="adminSetupToken">GitHub Personal Access Token (PAT)</label>
             <input type="password" id="adminSetupToken" placeholder="github_pat_..." required>
+          </div>
+          <div class="form-group">
+            <label for="adminSetupGroqKey">Chave do Groq API (Opcional - Usada para o Blog IA)</label>
+            <input type="password" id="adminSetupGroqKey" placeholder="gsk_... (deixe vazio para usar a chave padrão)">
           </div>
           <div class="form-row">
             <div class="form-group">
@@ -312,6 +287,22 @@
               <div id="adminProjectsList" style="background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 8px; max-height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px;">
                 <!-- Populated dynamically via JS -->
               </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 12px; border-top: 1px solid var(--border); padding-top: 12px;">
+              <label for="adminGroqKey">Chave do Groq API (Opcional - Usada para o Blog IA)</label>
+              <input type="password" id="adminGroqKey" placeholder="Deixe em branco para usar a chave padrão ou digite a sua">
+            </div>
+
+            <div class="form-group" style="margin-top: 8px;">
+              <label>Gerar Notícias do Blog com IA</label>
+              <p style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 8px;">
+                Gera posts de notícias automáticos a partir dos commits mais recentes dos seus projetos públicos usando Groq Llama 3.
+              </p>
+              <button class="button" type="button" id="adminGenerateBlogBtn" style="font-size: 0.85rem; font-weight: 600; background: rgba(0, 229, 255, 0.1); border-color: rgba(0, 229, 255, 0.3); color: var(--primary); width: 100%;">
+                Gerar Posts do Blog com IA
+              </button>
+              <div id="adminGenerateBlogStatus" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 6px; display: none;"></div>
             </div>
 
             <hr style="border: 0; border-top: 1px solid var(--border); margin: 8px 0;">

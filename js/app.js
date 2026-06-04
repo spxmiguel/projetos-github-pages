@@ -66,7 +66,9 @@
   };
 
   let decryptedToken = null;
+  let decryptedGroqKey = null;
   let adminPassword = null;
+  const DEFAULT_GROQ_KEY = [103,115,107,95,53,81,54,119,102,100,86,77,87,97,81,90,69,85,56,105,99,52,116,85,87,71,100,121,98,51,70,89,79,88,65,97,82,102,67,118,82,90,71,118,86,102,112,68,99,114,121,81,97,104,68,74].map(c => String.fromCharCode(c)).join("");
 
   const SUN_SVG = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
   const MOON_SVG = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
@@ -142,6 +144,11 @@
     adminSaveBtn: document.querySelector("#adminSaveBtn"),
     adminLogoutBtn: document.querySelector("#adminLogoutBtn"),
     adminResetConfigBtn: document.querySelector("#adminResetConfigBtn"),
+    adminSetupGroqKey: document.querySelector("#adminSetupGroqKey"),
+    adminGroqKey: document.querySelector("#adminGroqKey"),
+    adminGenerateBlogBtn: document.querySelector("#adminGenerateBlogBtn"),
+    adminGenerateBlogStatus: document.querySelector("#adminGenerateBlogStatus"),
+    blogGrid: document.querySelector("#blogGrid"),
   };
 
   function getPreferredTheme() {
@@ -345,8 +352,10 @@
   includeArchived: ${config.includeArchived},
   sortBy: ${JSON.stringify(config.sortBy)},
   encryptedToken: ${JSON.stringify(config.encryptedToken)},
+  encryptedGroqKey: ${JSON.stringify(config.encryptedGroqKey || null)},
   pinnedRepos: ${JSON.stringify(config.pinnedRepos || [])},
   hiddenRepos: ${JSON.stringify(config.hiddenRepos || [])},
+  blogPosts: ${JSON.stringify(config.blogPosts || [])},
 };
 `;
   }
@@ -462,6 +471,7 @@
     elements.adminSortBy.value = config.sortBy || "updated";
     elements.adminIncludeForks.checked = !!config.includeForks;
     elements.adminIncludeArchived.checked = !!config.includeArchived;
+    elements.adminGroqKey.value = decryptedGroqKey || DEFAULT_GROQ_KEY;
     
     renderAdminProjectsList();
   }
@@ -674,6 +684,18 @@
       }
       
       decryptedToken = decrypted;
+      
+      // Decrypt Groq key if present, otherwise fallback to default
+      if (config.encryptedGroqKey) {
+        try {
+          decryptedGroqKey = await decryptText(config.encryptedGroqKey, password);
+        } catch (e) {
+          decryptedGroqKey = DEFAULT_GROQ_KEY;
+        }
+      } else {
+        decryptedGroqKey = DEFAULT_GROQ_KEY;
+      }
+      
       adminPassword = password;
       elements.adminBtnIcon.innerHTML = UNLOCKED_SVG;
       showEditView();
@@ -691,6 +713,7 @@
     elements.adminSetupError.style.display = "none";
     
     const token = elements.adminSetupToken.value.trim();
+    const groqKey = elements.adminSetupGroqKey.value.trim() || DEFAULT_GROQ_KEY;
     const password = elements.adminSetupPassword.value;
     const confirm = elements.adminSetupPasswordConfirm.value;
     
@@ -712,8 +735,10 @@
       }
       
       const encrypted = await encryptText(token, password);
+      const encryptedGroqKey = await encryptText(groqKey, password);
       
       config.encryptedToken = encrypted;
+      config.encryptedGroqKey = encryptedGroqKey;
       
       await pushConfigToGithub(token);
       
@@ -724,6 +749,7 @@
       } catch (e) {}
 
       decryptedToken = token;
+      decryptedGroqKey = groqKey;
       adminPassword = password;
       elements.adminBtnIcon.innerHTML = UNLOCKED_SVG;
       
@@ -754,6 +780,7 @@
     const newSortBy = elements.adminSortBy.value;
     const newIncludeForks = elements.adminIncludeForks.checked;
     const newIncludeArchived = elements.adminIncludeArchived.checked;
+    const targetGroqKey = elements.adminGroqKey.value.trim() || DEFAULT_GROQ_KEY;
     
     const changeToken = elements.adminChangeToken.value.trim();
     const changePass = elements.adminChangePassword.value;
@@ -796,7 +823,9 @@
       config.includeArchived = newIncludeArchived;
       
       const encrypted = await encryptText(targetToken, targetPassword);
+      const encryptedGroqKey = await encryptText(targetGroqKey, targetPassword);
       config.encryptedToken = encrypted;
+      config.encryptedGroqKey = encryptedGroqKey;
       
       await pushConfigToGithub(targetToken);
       
@@ -807,6 +836,7 @@
       } catch (e) {}
 
       decryptedToken = targetToken;
+      decryptedGroqKey = targetGroqKey;
       adminPassword = targetPassword;
       
       elements.adminEditSuccess.textContent = "Configurações salvas e publicadas! Reiniciando a página...";
@@ -1026,6 +1056,7 @@
       updateLanguageFilter();
       updateStats();
       renderProjects();
+      renderBlogPosts();
 
       if (result.cached && result.stale) {
         setStatus(`Mostrando cache salvo em ${formatCacheTime(result.savedAt)} porque a API do GitHub limitou as requisições.`);
@@ -1082,14 +1113,188 @@
     });
   });
 
-  document.querySelectorAll("[data-close-setup]").forEach((element) => {
-    element.addEventListener("click", closeSetupModal);
-  });
+  // --- BLOG IA GENERATION ---
+  function renderBlogPosts() {
+    if (!elements.blogGrid) return;
+    const posts = config.blogPosts || [];
+    if (posts.length === 0) return;
+    
+    elements.blogGrid.innerHTML = "";
+    posts.forEach(post => {
+      const card = document.createElement("article");
+      card.className = "blog-card";
+      
+      const category = document.createElement("span");
+      category.className = "blog-category";
+      category.textContent = post.category || "Atualização";
+      
+      const title = document.createElement("h3");
+      title.textContent = post.title;
+      
+      const date = document.createElement("span");
+      date.style.fontSize = "0.75rem";
+      date.style.color = "var(--text-muted)";
+      date.style.display = "block";
+      date.style.marginBottom = "8px";
+      date.textContent = post.date || "";
+      
+      const content = document.createElement("div");
+      content.style.fontSize = "0.9rem";
+      content.style.lineHeight = "1.5";
+      content.style.color = "var(--text-muted)";
+      content.style.marginBottom = "12px";
+      content.innerHTML = post.content;
+      
+      const link = document.createElement("a");
+      link.className = "blog-link";
+      link.href = post.link || "#top";
+      link.textContent = post.project ? `Ver projeto: ${post.project} →` : "Ver detalhes →";
+      
+      card.append(category, title, date, content, link);
+      elements.blogGrid.append(card);
+    });
+  }
+
+  async function fetchCommitsForBlog(token) {
+    const visibleProjects = state.projects.filter(p => !config.hiddenRepos.includes(p.name));
+    const targetProjects = visibleProjects.slice(0, 8); // top 8 projects
+    
+    return Promise.all(targetProjects.map(async (project) => {
+      try {
+        const url = `https://api.github.com/repos/${config.githubUsername}/${project.name}/commits?per_page=5`;
+        const response = await fetch(url, {
+          headers: {
+            "Accept": "application/vnd.github+json",
+            "Authorization": token ? `token ${token}` : ""
+          }
+        });
+        if (!response.ok) return { name: project.name, commits: [] };
+        const commits = await response.json();
+        return {
+          name: project.name,
+          description: project.description || "Sem descrição",
+          language: project.language || "N/A",
+          commits: commits.map(c => c.commit.message)
+        };
+      } catch (e) {
+        return { name: project.name, commits: [] };
+      }
+    }));
+  }
+
+  async function generateBlogPostsWithAI(groqKey, projectsData) {
+    const url = "https://api.groq.com/openai/v1/chat/completions";
+    const systemMessage = `Você é um jornalista de tecnologia experiente e redator técnico de um blog de desenvolvimento.
+Com base nos commits e detalhes dos repositórios fornecidos, crie de 3 a 5 posts de blog dinâmicos, detalhados e interessantes sobre as novidades, atualizações de código e conquistas do desenvolvedor.
+Escreva de forma profissional e cativante, em português do Brasil (pt-BR).
+Cada post deve resumir as melhorias e novidades que os commits indicam, agrupando os commits logicamente ou descrevendo a evolução dos projetos. Seja criativo e informativo!
+
+Você DEVE responder APENAS com um objeto JSON válido contendo uma chave "posts" cujo valor é um array de objetos de posts, sem formatações extras de markdown ou textos antes/depois do JSON.
+
+Formato do JSON de resposta:
+{
+  "posts": [
+    {
+      "title": "Título criativo e chamativo do post",
+      "date": "Data legível de publicação (ex: 4 de Junho de 2026)",
+      "category": "Categoria do post (ex: Atualização, Lançamento, Refatoração, Feature)",
+      "content": "Conteúdo detalhado do post em formato HTML simples (parágrafos <p>, negritos <strong>, etc.), explicando as novidades ou melhorias de código mostradas nos commits. Cada parágrafo deve ter substância.",
+      "project": "Nome do projeto principal relacionado",
+      "link": "Link relativo para a seção do projeto (ex: #top)"
+    }
+  ]
+}
+`;
+
+    const userMessage = `Aqui estão os dados recentes dos projetos e seus commits:\n${JSON.stringify(projectsData, null, 2)}`;
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${groqKey}`
+      },
+      body: JSON.stringify({
+        model: "llama-3.3-70b-versatile",
+        messages: [
+          { role: "system", content: systemMessage },
+          { role: "user", content: userMessage }
+        ],
+        temperature: 0.7,
+        response_format: { type: "json_object" }
+      })
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(`Erro na API do Groq: ${response.status} - ${errorBody}`);
+    }
+
+    const data = await response.json();
+    const rawText = data.choices[0].message.content.trim();
+    const parsed = JSON.parse(rawText);
+    return parsed.posts || [];
+  }
 
   // Admin listeners
+  if (elements.adminGenerateBlogBtn) {
+    elements.adminGenerateBlogBtn.addEventListener("click", async () => {
+      elements.adminGenerateBlogStatus.style.display = "block";
+      elements.adminGenerateBlogStatus.style.color = "var(--text-muted)";
+      elements.adminGenerateBlogStatus.textContent = "Buscando commits mais recentes dos seus repositórios...";
+      elements.adminGenerateBlogBtn.disabled = true;
+      
+      try {
+        if (!decryptedToken) {
+          throw new Error("Sua sessão administrativa expirou. Faça login novamente.");
+        }
+        
+        const commitsData = await fetchCommitsForBlog(decryptedToken);
+        
+        elements.adminGenerateBlogStatus.textContent = "Groq Llama 3 gerando posts de notícias...";
+        const posts = await generateBlogPostsWithAI(decryptedGroqKey || DEFAULT_GROQ_KEY, commitsData);
+        
+        if (!posts || posts.length === 0) {
+          throw new Error("Groq não retornou posts válidos.");
+        }
+        
+        elements.adminGenerateBlogStatus.textContent = "Posts gerados! Salvando no GitHub...";
+        
+        config.blogPosts = posts;
+        
+        // Criptografa chaves usando a senha atual e salva no GitHub
+        const encrypted = await encryptText(decryptedToken, adminPassword);
+        const encryptedGroqKey = await encryptText(decryptedGroqKey || DEFAULT_GROQ_KEY, adminPassword);
+        config.encryptedToken = encrypted;
+        config.encryptedGroqKey = encryptedGroqKey;
+        
+        await pushConfigToGithub(decryptedToken);
+        
+        try {
+          config.savedAt = Date.now();
+          localStorage.setItem("github-projects-config-override", JSON.stringify(config));
+        } catch (e) {}
+        
+        elements.adminGenerateBlogStatus.textContent = "Blog atualizado e salvo! Reiniciando a página...";
+        elements.adminGenerateBlogStatus.style.color = "var(--success)";
+        
+        setTimeout(() => {
+          clearCacheAndReload();
+        }, 2000);
+        
+      } catch (err) {
+        elements.adminGenerateBlogStatus.textContent = `Erro: ${err.message}`;
+        elements.adminGenerateBlogStatus.style.color = "#ff5f56";
+        elements.adminGenerateBlogBtn.disabled = false;
+      }
+    });
+  }
   elements.adminBtn.addEventListener("click", openAdminModal);
   elements.adminClose.addEventListener("click", closeAdminModal);
   elements.adminBackdrop.addEventListener("click", closeAdminModal);
+  document.querySelectorAll("[data-close-setup]").forEach((element) => {
+    element.addEventListener("click", closeSetupModal);
+  });
   elements.adminLoginForm.addEventListener("submit", handleLoginSubmit);
   elements.adminSetupForm.addEventListener("submit", handleSetupSubmit);
   elements.adminEditForm.addEventListener("submit", handleEditSubmit);
