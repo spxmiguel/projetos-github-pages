@@ -1,4 +1,24 @@
 (function () {
+  // Load local config override if present (to bypass GitHub Pages build delays)
+  try {
+    const override = localStorage.getItem("github-projects-config-override");
+    if (override) {
+      const parsed = JSON.parse(override);
+      const usernameMatch = parsed.githubUsername === window.PORTFOLIO_CONFIG.githubUsername;
+      const repoMatch = parsed.repoName === window.PORTFOLIO_CONFIG.repoName;
+      const tokenIsStale = window.PORTFOLIO_CONFIG.encryptedToken && 
+                           window.PORTFOLIO_CONFIG.encryptedToken !== parsed.encryptedToken;
+      
+      if (usernameMatch && repoMatch && !tokenIsStale) {
+        Object.assign(window.PORTFOLIO_CONFIG, parsed);
+      } else {
+        localStorage.removeItem("github-projects-config-override");
+      }
+    }
+  } catch (e) {
+    // Ignore
+  }
+
   const config = window.PORTFOLIO_CONFIG;
   const SETUP_DOWNLOADS = {
     windows: {
@@ -494,6 +514,11 @@
       
       await pushConfigToGithub(token);
       
+      // Save configuration locally to bypass GitHub Pages build delays
+      try {
+        localStorage.setItem("github-projects-config-override", JSON.stringify(config));
+      } catch (e) {}
+
       decryptedToken = token;
       adminPassword = password;
       elements.adminBtnIcon.textContent = "🔓";
@@ -571,6 +596,11 @@
       
       await pushConfigToGithub(targetToken);
       
+      // Save configuration locally to bypass GitHub Pages build delays
+      try {
+        localStorage.setItem("github-projects-config-override", JSON.stringify(config));
+      } catch (e) {}
+
       decryptedToken = targetToken;
       adminPassword = targetPassword;
       
