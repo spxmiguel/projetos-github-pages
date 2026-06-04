@@ -201,8 +201,12 @@
     elements.profilePanel.hidden = false;
   }
 
-  function setStatus(message) {
-    elements.statusMessage.textContent = message;
+  function setStatus(message, isHtml = false) {
+    if (isHtml) {
+      elements.statusMessage.innerHTML = message;
+    } else {
+      elements.statusMessage.textContent = message;
+    }
   }
 
   function applyCtaMode(mode) {
@@ -1051,7 +1055,8 @@
     setStatus("Carregando projetos do GitHub...");
 
     try {
-      const result = await window.GitHubProjects.fetchProjectsData(config);
+      const visitorToken = localStorage.getItem("github-visitor-token") || decryptedToken;
+      const result = await window.GitHubProjects.fetchProjectsData(config, visitorToken);
       state.projects = result.projects;
       updateLanguageFilter();
       updateStats();
@@ -1059,17 +1064,105 @@
       renderBlogPosts();
 
       if (result.cached && result.stale) {
-        setStatus(`Mostrando cache salvo em ${formatCacheTime(result.savedAt)} porque a API do GitHub limitou as requisições.`);
+        setStatus(`Mostrando cache salvo em ${formatCacheTime(result.savedAt)} porque a API do GitHub limitou as requisições. <a href="#" id="forceReloadBtn" style="color: var(--primary); text-decoration: underline; margin-left: 8px; font-weight: 600;">Atualizar agora</a>`, true);
+        const forceBtn = document.querySelector("#forceReloadBtn");
+        if (forceBtn) {
+          forceBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            clearCacheAndReloadProjects();
+          });
+        }
       } else if (result.cached) {
-        setStatus(`Mostrando cache local. Atualiza automaticamente depois de ${formatCacheTime(result.expiresAt)}.`);
+        setStatus(`Mostrando cache local. Atualiza automaticamente depois de ${formatCacheTime(result.expiresAt)}. <a href="#" id="forceReloadBtn" style="color: var(--primary); text-decoration: underline; margin-left: 8px; font-weight: 600;">Atualizar agora</a>`, true);
+        const forceBtn = document.querySelector("#forceReloadBtn");
+        if (forceBtn) {
+          forceBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            clearCacheAndReloadProjects();
+          });
+        }
       }
     } catch (error) {
       const isRateLimit = error.status === 403;
-      setStatus(
-        isRateLimit
-          ? "A API do GitHub limitou as requisições e ainda não existe cache salvo neste navegador. Tente novamente mais tarde."
-          : "Não foi possível carregar os projetos agora. Confira o usuário no js/config.js."
-      );
+      showRateLimitError(isRateLimit);
+    }
+  }
+
+  function clearCacheAndReloadProjects() {
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith("github-projects-cache")) {
+        localStorage.removeItem(key);
+      }
+    }
+    loadProjects();
+  }
+
+  function showRateLimitError(isRateLimit) {
+    const hasVisitorToken = !!localStorage.getItem("github-visitor-token");
+    
+    let html = "";
+    if (isRateLimit) {
+      html = `
+        <div style="text-align: center; padding: 20px;">
+          <p style="margin-bottom: 12px; font-weight: 500; color: #ff5f56;">A API do GitHub limitou as requisições (Limite de IP atingido).</p>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">
+            Para atualizar os projetos agora e ignorar este limite, insira seu próprio <strong>GitHub Personal Access Token (PAT)</strong>:
+          </p>
+          <div style="display: flex; gap: 8px; max-width: 400px; margin: 0 auto; align-items: center;">
+            <input type="password" id="visitorTokenInput" placeholder="github_pat_..." style="padding: 8px 12px; font-size: 0.85rem; flex: 1; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface); color: var(--text);">
+            <button id="visitorTokenSubmitBtn" class="button primary" style="padding: 8px 16px; font-size: 0.85rem;">Salvar</button>
+          </div>
+          ${hasVisitorToken ? `<a href="#" id="removeVisitorTokenLink" style="font-size: 0.8rem; color: #ff5f56; display: inline-block; margin-top: 12px; text-decoration: underline;">Remover token atual</a>` : ""}
+        </div>
+      `;
+    } else {
+      html = `
+        <div style="text-align: center; padding: 20px;">
+          <p style="margin-bottom: 12px; font-weight: 500; color: #ff5f56;">Não foi possível carregar os projetos agora. Verifique as configurações.</p>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">
+            Se o repositório for privado ou precisar de permissões especiais, insira um token de acesso válido:
+          </p>
+          <div style="display: flex; gap: 8px; max-width: 400px; margin: 0 auto; align-items: center;">
+            <input type="password" id="visitorTokenInput" placeholder="github_pat_..." style="padding: 8px 12px; font-size: 0.85rem; flex: 1; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface); color: var(--text);">
+            <button id="visitorTokenSubmitBtn" class="button primary" style="padding: 8px 16px; font-size: 0.85rem;">Salvar</button>
+          </div>
+          ${hasVisitorToken ? `<a href="#" id="removeVisitorTokenLink" style="font-size: 0.8rem; color: #ff5f56; display: inline-block; margin-top: 12px; text-decoration: underline;">Remover token atual</a>` : ""}
+        </div>
+      `;
+    }
+    
+    setStatus(html, true);
+    
+    const submitBtn = document.querySelector("#visitorTokenSubmitBtn");
+    const tokenInput = document.querySelector("#visitorTokenInput");
+    const removeLink = document.querySelector("#removeVisitorTokenLink");
+    
+    if (submitBtn && tokenInput) {
+      submitBtn.addEventListener("click", () => {
+        const token = tokenInput.value.trim();
+        if (token) {
+          localStorage.setItem("github-visitor-token", token);
+          loadProjects();
+        }
+      });
+      tokenInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          const token = tokenInput.value.trim();
+          if (token) {
+            localStorage.setItem("github-visitor-token", token);
+            loadProjects();
+          }
+        }
+      });
+    }
+    
+    if (removeLink) {
+      removeLink.addEventListener("click", (e) => {
+        e.preventDefault();
+        localStorage.removeItem("github-visitor-token");
+        loadProjects();
+      });
     }
   }
 
