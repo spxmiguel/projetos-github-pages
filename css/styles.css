@@ -28,6 +28,7 @@
   --shadow: 0 12px 40px -10px rgba(0, 0, 0, 0.8);
   --shadow-glow: 0 0 30px 0 var(--primary-glow);
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --theme-toggle-hover: rgba(255, 255, 255, 0.05);
   
   font-family: var(--font-primary);
   color-scheme: dark;
@@ -52,6 +53,7 @@
   
   --shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.08);
   --shadow-glow: 0 0 30px 0 var(--primary-glow);
+  --theme-toggle-hover: rgba(0, 0, 0, 0.05);
   color-scheme: light;
 }
 
@@ -127,6 +129,7 @@ body {
   font-size: 0.75rem;
   color: var(--text-muted);
   font-family: var(--font-mono);
+  display: none; /* Hidden to match Canva mockup header style */
 }
 
 .nav-menu {
@@ -171,6 +174,28 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+@media(min-width: 601px) {
+  .nav-shell {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+  }
+  .brand {
+    justify-self: start;
+  }
+  .nav-menu {
+    justify-self: center;
+  }
+  .nav-actions {
+    justify-self: end;
+  }
+  .nav-menu-link::after {
+    bottom: -18px; /* Alinha a linha ativa exatamente com a borda inferior do header */
+    height: 3px;
+    border-radius: 2px 2px 0 0;
+  }
 }
 
 /* Floating Badge "Create Yours" (canto inferior direito) */
@@ -277,10 +302,10 @@ body {
 .theme-toggle {
   width: 40px;
   height: 40px;
-  border: 1px solid var(--border);
+  border: none;
   border-radius: var(--radius-md);
-  background: var(--surface);
-  color: var(--text);
+  background: transparent;
+  color: var(--text-muted);
   font-size: 1.1rem;
   cursor: pointer;
   display: flex;
@@ -290,7 +315,8 @@ body {
 }
 
 .theme-toggle:hover {
-  background: var(--surface-hover);
+  background: var(--theme-toggle-hover);
+  color: var(--text);
   transform: scale(1.05);
 }
 

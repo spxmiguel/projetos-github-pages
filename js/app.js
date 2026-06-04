@@ -68,6 +68,20 @@
   let decryptedToken = null;
   let adminPassword = null;
 
+  const SUN_SVG = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
+  const MOON_SVG = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
+  const LOCKED_SVG = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>`;
+  const UNLOCKED_SVG = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg>`;
+  
+  const CALENDAR_SVG = `<svg class="card-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>`;
+  const COMMIT_SVG = `<svg class="card-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><line x1="1.05" y1="12" x2="7" y2="12"></line><line x1="17.01" y1="12" x2="22.96" y2="12"></line></svg>`;
+  const TAG_SVG = `<svg class="card-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>`;
+  const STAR_SVG = `<svg class="card-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`;
+  const FORK_SVG = `<svg class="card-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="3" x2="6" y2="15"></line><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg>`;
+  const ALERT_SVG = `<svg class="card-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`;
+  const PACKAGE_SVG = `<svg class="card-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"></line><polygon points="12 22.08 12 12 3 6.92 3 17.08 12 22.08"></polygon><polygon points="12 22.08 21 17.08 21 6.92 12 12 12 22.08"></polygon><polygon points="12 12 21 6.92 12 1.84 3 6.92 12 12"></polygon></svg>`;
+  const PIN_SVG = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>`;
+
   const elements = {
     brandName: document.querySelector("#brandName"),
     brandHandle: document.querySelector("#brandHandle"),
@@ -141,7 +155,7 @@
   function applyTheme() {
     const theme = getPreferredTheme();
     document.documentElement.dataset.theme = theme;
-    elements.themeIcon.textContent = theme === "dark" ? "☀" : "◐";
+    elements.themeIcon.innerHTML = theme === "dark" ? SUN_SVG : MOON_SVG;
   }
 
   function toggleTheme() {
@@ -516,7 +530,7 @@
         // Up button
         const upBtn = document.createElement("button");
         upBtn.type = "button";
-        upBtn.innerHTML = "▲";
+        upBtn.innerHTML = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>`;
         upBtn.style.padding = "2px 6px";
         upBtn.style.fontSize = "0.7rem";
         upBtn.style.borderRadius = "3px";
@@ -525,6 +539,9 @@
         upBtn.style.color = "var(--text-muted)";
         upBtn.style.cursor = pinIdx > 0 ? "pointer" : "not-allowed";
         upBtn.style.opacity = pinIdx > 0 ? "1" : "0.3";
+        upBtn.style.display = "inline-flex";
+        upBtn.style.alignItems = "center";
+        upBtn.style.justifyContent = "center";
         if (pinIdx > 0) {
           upBtn.addEventListener("click", () => {
             const temp = pinned[pinIdx - 1];
@@ -537,7 +554,7 @@
         // Down button
         const downBtn = document.createElement("button");
         downBtn.type = "button";
-        downBtn.innerHTML = "▼";
+        downBtn.innerHTML = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>`;
         downBtn.style.padding = "2px 6px";
         downBtn.style.fontSize = "0.7rem";
         downBtn.style.borderRadius = "3px";
@@ -546,6 +563,9 @@
         downBtn.style.color = "var(--text-muted)";
         downBtn.style.cursor = pinIdx < pinned.length - 1 ? "pointer" : "not-allowed";
         downBtn.style.opacity = pinIdx < pinned.length - 1 ? "1" : "0.3";
+        downBtn.style.display = "inline-flex";
+        downBtn.style.alignItems = "center";
+        downBtn.style.justifyContent = "center";
         if (pinIdx < pinned.length - 1) {
           downBtn.addEventListener("click", () => {
             const temp = pinned[pinIdx + 1];
@@ -562,7 +582,10 @@
       // Pin Button
       const pinBtn = document.createElement("button");
       pinBtn.type = "button";
-      pinBtn.innerHTML = isPinned ? "⭐ Fixado" : "☆ Fixar";
+      const starSvg = isPinned 
+        ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; display: inline-block; vertical-align: middle;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>` 
+        : `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; display: inline-block; vertical-align: middle;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`;
+      pinBtn.innerHTML = starSvg + (isPinned ? "Fixado" : "Fixar");
       pinBtn.style.padding = "4px 8px";
       pinBtn.style.fontSize = "0.75rem";
       pinBtn.style.borderRadius = "var(--radius-sm)";
@@ -571,6 +594,9 @@
       pinBtn.style.color = isPinned ? "var(--primary)" : "var(--text-muted)";
       pinBtn.style.cursor = "pointer";
       pinBtn.style.transition = "var(--transition)";
+      pinBtn.style.display = "inline-flex";
+      pinBtn.style.alignItems = "center";
+      pinBtn.style.justifyContent = "center";
       
       pinBtn.addEventListener("click", () => {
         const pinIdx = pinned.indexOf(project.name);
@@ -586,7 +612,10 @@
       const hideBtn = document.createElement("button");
       hideBtn.type = "button";
       const isHidden = config.hiddenRepos.includes(project.name);
-      hideBtn.innerHTML = isHidden ? "🙈 Oculto" : "👁️ Mostrar";
+      const eyeSvg = isHidden 
+        ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; display: inline-block; vertical-align: middle;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`
+        : `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; display: inline-block; vertical-align: middle;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+      hideBtn.innerHTML = eyeSvg + (isHidden ? "Oculto" : "Mostrar");
       hideBtn.style.padding = "4px 8px";
       hideBtn.style.fontSize = "0.75rem";
       hideBtn.style.borderRadius = "var(--radius-sm)";
@@ -595,6 +624,9 @@
       hideBtn.style.color = isHidden ? "#ff5f56" : "var(--text-muted)";
       hideBtn.style.cursor = "pointer";
       hideBtn.style.transition = "var(--transition)";
+      hideBtn.style.display = "inline-flex";
+      hideBtn.style.alignItems = "center";
+      hideBtn.style.justifyContent = "center";
       
       hideBtn.addEventListener("click", () => {
         const hideIdx = config.hiddenRepos.indexOf(project.name);
@@ -643,7 +675,7 @@
       
       decryptedToken = decrypted;
       adminPassword = password;
-      elements.adminBtnIcon.textContent = "🔓";
+      elements.adminBtnIcon.innerHTML = UNLOCKED_SVG;
       showEditView();
     } catch (err) {
       elements.adminLoginError.textContent = err.message || "Senha incorreta ou token inválido.";
@@ -693,7 +725,7 @@
 
       decryptedToken = token;
       adminPassword = password;
-      elements.adminBtnIcon.textContent = "🔓";
+      elements.adminBtnIcon.innerHTML = UNLOCKED_SVG;
       
       elements.adminSetupError.style.display = "none";
       alert("Configurado com sucesso! O site será recarregado em instantes.");
@@ -796,7 +828,7 @@
   function handleLogout() {
     decryptedToken = null;
     adminPassword = null;
-    elements.adminBtnIcon.textContent = "🔒";
+    elements.adminBtnIcon.innerHTML = LOCKED_SVG;
     closeAdminModal();
   }
 
@@ -897,8 +929,8 @@
       card.classList.add("pinned-card");
       const pinBadge = document.createElement("span");
       pinBadge.className = "pin-badge";
-      pinBadge.innerHTML = "📌 Fixado";
-      card.querySelector(".card-head").prepend(pinBadge);
+      pinBadge.innerHTML = `${PIN_SVG} Pinned`;
+      card.prepend(pinBadge);
     }
 
     title.textContent = project.name;
@@ -906,50 +938,50 @@
     language.textContent = project.language || "Sem linguagem";
 
     const updated = document.createElement("span");
-    updated.textContent = `📅 ${formatDate(project.updated_at)}`;
+    updated.innerHTML = `${CALENDAR_SVG} ${formatDate(project.updated_at)}`;
     meta.append(updated);
 
     if (project.commitCount !== undefined && project.commitCount !== null) {
       const commitsSpan = document.createElement("span");
-      commitsSpan.textContent = `💬 ${project.commitCount} commit${project.commitCount !== 1 ? "s" : ""}`;
+      commitsSpan.innerHTML = `${COMMIT_SVG} ${project.commitCount} commit${project.commitCount !== 1 ? "s" : ""}`;
       meta.append(commitsSpan);
     }
 
     if (project.releases.length) {
       const release = document.createElement("span");
-      release.textContent = `🏷️ ${project.releases.length} release${project.releases.length > 1 ? "s" : ""}`;
+      release.innerHTML = `${TAG_SVG} ${project.releases.length} release${project.releases.length > 1 ? "s" : ""}`;
       meta.append(release);
     }
 
     if (project.stargazers_count > 0) {
       const stars = document.createElement("span");
-      stars.textContent = `⭐ ${project.stargazers_count}`;
+      stars.innerHTML = `${STAR_SVG} ${project.stargazers_count}`;
       meta.append(stars);
     }
 
     if (project.forks_count > 0) {
       const forks = document.createElement("span");
-      forks.textContent = `🍴 ${project.forks_count}`;
+      forks.innerHTML = `${FORK_SVG} ${project.forks_count}`;
       meta.append(forks);
     }
 
     if (project.open_issues_count > 0) {
       const issues = document.createElement("span");
-      issues.textContent = `⚠️ ${project.open_issues_count} issue${project.open_issues_count > 1 ? "s" : ""}`;
+      issues.innerHTML = `${ALERT_SVG} ${project.open_issues_count} issue${project.open_issues_count > 1 ? "s" : ""}`;
       meta.append(issues);
     }
 
     const sizeKB = project.size || 0;
     const size = document.createElement("span");
-    size.textContent = sizeKB > 1024 ? `📦 ${(sizeKB / 1024).toFixed(1)} MB` : `📦 ${sizeKB} KB`;
+    size.innerHTML = `${PACKAGE_SVG} ${sizeKB > 1024 ? (sizeKB / 1024).toFixed(1) + " MB" : sizeKB + " KB"}`;
     meta.append(size);
 
     if (project.siteLink) {
-      actions.append(createButton({ href: project.siteLink, label: "Acessar site", variant: "primary" }));
+      actions.append(createButton({ href: project.siteLink, label: "Live Demo", variant: "primary" }));
     }
 
     if (project.repoLink) {
-      actions.append(createButton({ href: project.repoLink, label: "Ver no GitHub", variant: "" }));
+      actions.append(createButton({ href: project.repoLink, label: "Source", variant: "" }));
     }
 
     for (const download of project.downloads) {
