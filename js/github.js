@@ -122,7 +122,7 @@
   }
 
   function findSiteLink(repo) {
-    if (repo.homepage && /^https?:\/\//i.test(repo.homepage) && repo.homepage.includes('.github.io')) {
+    if (repo.homepage && /^https?:\/\//i.test(repo.homepage)) {
       return repo.homepage;
     }
 
@@ -244,7 +244,7 @@
 
           return {
             ...repo,
-            siteLink: directSiteLink || `https://${config.githubUsername}.github.io/${repo.name}/`,
+            siteLink: directSiteLink || readmeSiteLink,
             readmeLink: findReadmeLink(repo),
             repoLink: repo.html_url,
             releases: releaseData.releases,
